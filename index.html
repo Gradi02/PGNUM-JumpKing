@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prosta gra</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 1rem;
+      background: #b0b1b3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #e6eef8;
+      gap: 1.5rem;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 4 / 3;
+      background: #c4c2c2;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #0004;
+      object-fit: contain;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .controls input[type="number"] {
+      width: 80px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #e6eef8;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .controls button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .controls button:hover {
+      background: #1d4ed8;
+    }
+
+    .controls button:active {
+      background: #1e40af;
+    }
+
+    .nice-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: sans-serif;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .nice-checkbox input {
+      display: none;
+    }
+
+    .nice-checkbox span {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #007bff;
+      border-radius: 4px;
+      display: inline-block;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .nice-checkbox input:checked + span {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .nice-checkbox input:checked + span::after {
+      content: "✓";
+      position: absolute;
+      top: 0;
+      left: 3px;
+      color: white;
+      font-size: 14px;
+    }
+    
+    @media (max-width: 600px) {
+      body {
+        gap: 1rem;
+        padding: 0.5rem;
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+        width: 80%;
+        max-width: 280px;
+      }
+      
+      .controls > * {
+        text-align: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .controls input[type="number"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="1200" height="900"></canvas>
+
+  <div class="controls">
+    <input type="number" value="10" id="spawn-count" aria-label="Liczba kulek do stworzenia" />
+    <button id="spawn-btn">Spawn Ball</button>
+    <span>Speed:</span>
+    <input type="number" value="10" id="speed" aria-label="Prędkość" />
+    <span>Max Speed:</span>
+    <input type="number" value="2" id="max-speed" aria-label="Maksymalna prędkość" />
+    <button id="select-player-btn">Next Player</button>
+  </div>
+
+  <script type="module" src="js/TimeManager.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/animator.js"></script>
+  <script type="module" src="js/Colliders/collider.js"></script>
+  <script type="module" src="js/Objects/object.js"></script>
+  <script type="module" src="js/ball.js"></script>
+  <script type="module" src="js/player.js"></script>
+  <script type="module" src="js/animatedPlayer.js"></script>
+  <script type="module" src="js/InputsHandler.js"></script>
+  <script type="module" src="js/vJoyShot.js"></script>
+</body>
+</html>
