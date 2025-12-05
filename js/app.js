@@ -54,7 +54,7 @@ function resizeCanvas() {
   canvas.width = rect.width * dpr;
   canvas.height = rect.height * dpr;
   
-  canvas.scale(dpr, dpr);
+  context.scale(dpr, dpr);
 }
 
 function render(){

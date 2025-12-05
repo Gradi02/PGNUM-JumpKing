@@ -8,8 +8,7 @@ const ASSETS_TO_CACHE = [
   './js/TimeManager.js',
   './js/vJoyShot.js',
   './manifest.json',
-  './images/helmet_02d.png',
-  './images/sword_03b.png',
+  './images/jk.png',
 ];
 
 self.addEventListener('install', (e) => {

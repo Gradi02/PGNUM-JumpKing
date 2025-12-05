@@ -8,13 +8,8 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "images/helmet_02d.png",
-      "sizes": "48x48",
-      "type": "image/png"
-    },
-    {
-      "src": "images/sword_03b.png",
-      "sizes": "48x48",
+      "src": "images/jk.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
