@@ -2,8 +2,15 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Prosta gra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <title>Jump King</title>
+  <style>
+      body { margin: 0; overflow: hidden; background: #000; }
+      canvas { display: block; }
+  </style>
 </head>
 <body>
   <canvas id="game" width="1200" height="900"></canvas>
@@ -14,5 +21,13 @@
   <script type="module" src="js/InputsHandler.js"></script>
   <script type="module" src="js/vJoyShot.js"></script>
   <script type="module" src="js/screenShake.js"></script>
+
+  <script>
+      if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js')
+              .then(() => console.log('Service Worker zarejestrowany'))
+              .catch((err) => console.log('Błąd SW:', err));
+      }
+  </script>
 </body>
 </html>

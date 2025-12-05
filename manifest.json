@@ -1,0 +1,21 @@
+{
+  "name": "Jump King PWA",
+  "short_name": "JumpKing",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "images/helmet_02d.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "images/sword_03b.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    }
+  ]
+}
