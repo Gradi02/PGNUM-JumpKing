@@ -8,7 +8,7 @@ export class Game {
         this.shotController = shotController;
         this.player = null;
         this.level = null;
-        this.camera = new Camera();
+        this.camera = { y: 0 }; 
         
         this.score = 0;
         this.highScore = localStorage.getItem('jumpking_highscore') || 0;
@@ -30,21 +30,27 @@ export class Game {
     }
 
     bindEvents() {
-        this.ui.startBtn.addEventListener('click', () => this.start());
-        this.ui.restartBtn.addEventListener('click', () => this.start());
+        ['click', 'touchstart'].forEach(evt => {
+            this.ui.startBtn.addEventListener(evt, (e) => { e.preventDefault(); this.start(); });
+            this.ui.restartBtn.addEventListener(evt, (e) => { e.preventDefault(); this.start(); });
+        });
     }
 
     start() {
-        this.player = new Player(this.canvas.width / 2, -50);
+        this.player = new Player(this.canvas.width / 2, -100);
         
         this.level = new LevelGenerator(this.canvas.width);
         
-        this.camera.y = -this.canvas.height; 
+        this.camera.y = this.player.pos.y - (this.canvas.height * 0.7);
         
+        const viewTop = this.camera.y - this.canvas.height;
+        this.level.update(viewTop);
+
         this.state = 'PLAYING';
         this.ui.menu.style.display = 'none';
         this.ui.gameOver.style.display = 'none';
         this.score = 0;
+        this.ui.score.innerText = '0';
     }
 
     update(dt) {
@@ -60,22 +66,28 @@ export class Game {
             }
         }
 
-        if (this.player.pos.y > 200) {
-            this.gameOver();
-        }
+        const targetCamY = this.player.pos.y - this.canvas.height * 0.6;
+        
+        const lerpSpeed = 5 * dt;
+        const potentialNewY = this.camera.y + (targetCamY - this.camera.y) * lerpSpeed;
 
-        const currentHeight = Math.max(0, -this.player.pos.y);
+        if (potentialNewY < this.camera.y) {
+            this.camera.y = potentialNewY;
+        }
+        
+        const cameraBottom = this.camera.y + this.canvas.height;
+        this.level.update(this.camera.y, cameraBottom);
+
+        const currentHeight = Math.max(0, Math.floor(-this.player.pos.y / 10));
         if (currentHeight > this.score) {
             this.score = currentHeight;
-            this.ui.score.innerText = Math.floor(this.score / 10);
+            this.ui.score.innerText = this.score;
         }
 
-        this.level.update(this.player.pos.y);
-        const targetCamY = this.player.pos.y - this.canvas.height * 0.6;
-        this.camera.y += (targetCamY - this.camera.y) * 5 * dt;
+        const deathLine = this.camera.y + this.canvas.height + 50;
         
-        if (this.camera.y > -this.canvas.height) {
-            this.camera.y = -this.canvas.height;
+        if (this.player.pos.y > deathLine) {
+            this.gameOver();
         }
     }
 
@@ -83,19 +95,24 @@ export class Game {
         if (this.state !== 'PLAYING') return;
 
         ctx.save();
-        ctx.translate(0, -this.camera.y);
+        ctx.translate(0, -Math.floor(this.camera.y));
 
         ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        for(let i=0; i<20; i++) {
-            ctx.moveTo(0, this.camera.y + i * 100);
-            ctx.lineTo(this.canvas.width, this.camera.y + i * 100);
+        
+        const startY = Math.floor(this.camera.y / 100) * 100;
+        const endY = startY + this.canvas.height + 200;
+
+        for(let y = startY; y < endY; y += 100) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(this.canvas.width, y);
         }
         ctx.stroke();
 
         this.level.draw(ctx);
         this.player.draw(ctx);
-        
+
         ctx.restore();
         this.shotController.draw(ctx);
     }
@@ -103,12 +120,12 @@ export class Game {
     gameOver() {
         this.state = 'GAMEOVER';
         this.ui.gameOver.style.display = 'block';
-        this.ui.finalScore.innerText = Math.floor(this.score / 10);
+        this.ui.finalScore.innerText = this.score;
         
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('jumpking_highscore', this.highScore);
-            this.ui.highScore.innerText = Math.floor(this.highScore / 10);
+            this.ui.highScore.innerText = this.highScore;
         }
         
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);

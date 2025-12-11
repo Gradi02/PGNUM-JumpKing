@@ -50,7 +50,7 @@ export class Player {
         if (this.vel.y > 0) {
             const prevY = this.pos.y - this.vel.y * 0.016;
             
-            if (this.pos.x > platform.x && this.pos.x < platform.x + platform.w &&
+            if (this.pos.x > platform.x && this.pos.x < platform.x + platform.width &&
                 this.pos.y + this.radius >= platform.y && 
                 prevY + this.radius <= platform.y + 5) {
                 

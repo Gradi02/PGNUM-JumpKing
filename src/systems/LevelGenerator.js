@@ -1,56 +1,89 @@
+import { Platform } from '../entities/Platform.js';
+
 export class LevelGenerator {
     constructor(canvasWidth) {
         this.platforms = [];
         this.width = canvasWidth;
+        
+        this.maxJumpHeight = 250; 
+        
         this.lastY = 0;
-        this.jumpHeight = 250;
-        
-        this.platforms.push({ x: 0, y: 0, w: canvasWidth, h: 40, type: 'floor' });
-        
-        this.generateChunk(-1000);
+        this.platforms.push(new Platform(0, 0, canvasWidth, 40, 'floor'));
+        this.generateChunk(-1200);
     }
 
     generateChunk(targetY) {
         while (this.lastY > targetY) {
-            this.lastY -= (this.jumpHeight / 2 + Math.random() * (this.jumpHeight / 2));
-            const count = Math.random() > 0.7 ? 2 : 1;
-            
-            for(let i=0; i<count; i++) {
-                const w = 60 + Math.random() * 80;
-                const x = Math.random() * (this.width - w);
-                
-                this.platforms.push({
-                    x: x,
-                    y: this.lastY,
-                    w: w,
-                    h: 20,
-                    type: 'normal'
-                });
-            }
+            this.createNextRow();
         }
     }
+
+    createNextRow() {
+        const gapY = 70 + Math.random() * 50; 
+        this.lastY -= gapY;
+
+        const heightFactor = Math.min(1, Math.abs(this.lastY) / 20000);
+        const minWidth = 60 - (heightFactor * 40);
+        const widthVar = 60 - (heightFactor * 30);
+
+        // KROK 3: Decyzja - 1 długa czy 2 krótsze?
+        // 30% szans na rozdwojenie ścieżki
+        const isSplitPath = Math.random() > 0.7;
+
+        if (isSplitPath) {
+            // --- Dwie platformy (lewa i prawa) ---
+            const w1 = minWidth + Math.random() * widthVar;
+            const w2 = minWidth + Math.random() * widthVar;
+
+            // Lewa strona (z marginesem od ściany)
+            const x1 = Math.random() * (this.width / 2 - w1);
+            
+            // Prawa strona
+            const x2 = (this.width / 2) + Math.random() * (this.width / 2 - w2);
+
+            this.addPlatform(x1, this.lastY, w1);
+            this.addPlatform(x2, this.lastY, w2);
+
+        } else {
+            // --- Pojedyncza platforma ---
+            const w = minWidth + Math.random() * widthVar + 20; // Nieco szersze niż przy split
+            
+            // Unikaj generowania platformy idealnie na środku cały czas
+            // Losuj pozycję, ale z marginesem od ścian
+            let x = Math.random() * (this.width - w);
+            
+            this.addPlatform(x, this.lastY, w);
+        }
+    }
+
+    addPlatform(x, y, w) {
+        let type = 'normal';
+        if (Math.random() > 0.65) type = 'ice'; 
+        if (Math.random() > 0.88) type = 'bouncy';
+
+        const p = new Platform(x, y, w, 20, type);
+        this.platforms.push(p);
+    }
     
-    update(cameraY) {
-        const generationHorizon = cameraY - 1000; 
+    update(cameraTopY, cameraBottomY) {
+        const generationHorizon = cameraTopY - 800; 
         if (this.lastY > generationHorizon) {
-            this.generateChunk(generationHorizon - 1000);
+            this.generateChunk(generationHorizon - 500);
         }
 
-        // Usuwaj platformy, które spadły daleko w dół (optymalizacja)
-        // Uwaga: W Jump Kingu spadanie na sam dół jest kluczowe, 
-        // więc nie możemy usuwać platform, chyba że chcemy zresetować poziom przy upadku.
-        // Jeśli robimy 'nieskończony' runner, usuwamy. Jeśli 'Tower', trzymamy.
-        // Wymagania mówią: "climb as high as possible... falling causes long fall".
-        // Wniosek: NIE USUWAĆ PLATFORM (lub usuwać bardzo nisko, np. 5000px pod kamerą).
+        if (cameraBottomY !== undefined) {
+            const cleanupLine = cameraBottomY + 1500;
+            if (this.platforms.length > 0 && this.platforms[0].y > cleanupLine) {
+                 this.platforms = this.platforms.filter(p => p.y <= cleanupLine);
+            }
+        }
+        
+        this.platforms.forEach(p => p.update());
     }
 
     draw(ctx) {
-        ctx.fillStyle = '#654321';
         for (const p of this.platforms) {
-            ctx.fillRect(p.x, p.y, p.w, p.h);
-            ctx.fillStyle = '#44aa44';
-            ctx.fillRect(p.x, p.y, p.w, 4);
-            ctx.fillStyle = '#654321';
+            p.draw(ctx);
         }
     }
 }
