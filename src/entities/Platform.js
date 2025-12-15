@@ -1,42 +1,59 @@
+import { PLATFORM_TYPE } from "../enums.js";
+
 export class Platform {
-    constructor(x, y, width, height, type = 'normal') {
+    constructor(x, y, width, height, type = PLATFORM_TYPE.DEFAULT) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.type = type;
+        this.friction = 0.9;
 
         this.setVisuals();
     }
 
     setVisuals() {
-        this.colorBody = '#654321';
-        this.colorTop = '#44aa44';
-        this.hasGrass = true;
-
         switch (this.type) {
-            case 'floor':
+            case PLATFORM_TYPE.DEFAULT:
+                this.colorBody = '#654321';
+                this.colorTop = '#44aa44';
+                this.hasGrass = true;
+                this.friction = 0.8;
+                break;
+
+            case PLATFORM_TYPE.FLOOR:
                 this.colorBody = '#222';
                 this.colorTop = '#555';
                 this.hasGrass = false;
+                this.friction = 0.8;
                 break;
             
-            case 'ice':
+            case PLATFORM_TYPE.ICE:
                 this.colorBody = '#aaccff';
                 this.colorTop = '#fff';
                 this.hasGrass = false;
+                this.friction = 0.98;
                 break;
                 
-            case 'bouncy':
+            case PLATFORM_TYPE.BOUNCY:
                 this.colorBody = '#ff66aa';
                 this.colorTop = '#ff99cc';
                 this.hasGrass = false;
+                this.friction = 0;
                 break;
         }
     }
 
     update(dt) {
 
+    }
+
+    special_action(player) {
+        if (this.type === PLATFORM_TYPE.BOUNCY) {
+            player.vel.y = -1600; 
+            player.isGrounded = false;
+            player.doubleJumpAvailable = true;
+        }
     }
 
     draw(ctx) {
@@ -51,7 +68,7 @@ export class Platform {
         ctx.fillRect(this.x, this.y, this.width, topHeight);
 
         ctx.strokeRect(this.x, this.y, this.width, this.height);
-        if (this.type === 'bouncy') {
+        if (this.type === PLATFORM_TYPE.BOUNCY) {
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.beginPath();
             ctx.arc(this.x + this.width/2, this.y + this.height/2, 5, 0, Math.PI*2);

@@ -1,14 +1,28 @@
 import { Platform } from '../entities/Platform.js';
+import { PLATFORM_TYPE } from '../enums.js';
 
 export class LevelGenerator {
-    constructor(canvasWidth) {
+    constructor(canvasWidth, player, biomesManager) {
         this.platforms = [];
         this.width = canvasWidth;
+        this.player = player;
+        this.biomesManager = biomesManager;
+
+        const gravity = 1500;
+        const jumpForceMultiplier = 40;
+        const maxInputForce = 26;
+
+        const maxVel = maxInputForce * jumpForceMultiplier;
+        this.maxJumpHeight = (maxVel * maxVel) / (2 * gravity);
+        const timeInAir = 2 * (maxVel / gravity);
+        this.maxJumpDistanceX = (maxVel * timeInAir) * 0.55; 
+
+        this.N = 3; 
         
-        this.maxJumpHeight = 250; 
-        
+        this.rowSpacing = Math.floor(this.maxJumpHeight / this.N); 
+
         this.lastY = 0;
-        this.platforms.push(new Platform(0, 0, canvasWidth, 40, 'floor'));
+        this.platforms.push(new Platform(0, 0, canvasWidth, 40, PLATFORM_TYPE.FLOOR));
         this.generateChunk(-1200);
     }
 
@@ -19,47 +33,23 @@ export class LevelGenerator {
     }
 
     createNextRow() {
-        const gapY = 70 + Math.random() * 50; 
-        this.lastY -= gapY;
+        this.lastY -= this.rowSpacing;
+        const prevPlatform = this.platforms[this.platforms.length - 1];
+        const prevCenter = prevPlatform ? (prevPlatform.x + prevPlatform.width / 2) : (this.width / 2);
+        const heightFactor = Math.min(1, Math.abs(this.lastY) / 100000);
 
-        const heightFactor = Math.min(1, Math.abs(this.lastY) / 20000);
-        const minWidth = 60 - (heightFactor * 40);
-        const widthVar = 60 - (heightFactor * 30);
-
-        // KROK 3: Decyzja - 1 długa czy 2 krótsze?
-        // 30% szans na rozdwojenie ścieżki
-        const isSplitPath = Math.random() > 0.7;
-
-        if (isSplitPath) {
-            // --- Dwie platformy (lewa i prawa) ---
-            const w1 = minWidth + Math.random() * widthVar;
-            const w2 = minWidth + Math.random() * widthVar;
-
-            // Lewa strona (z marginesem od ściany)
-            const x1 = Math.random() * (this.width / 2 - w1);
+        const width = 90 + Math.random() * 60 - (30 * heightFactor);
             
-            // Prawa strona
-            const x2 = (this.width / 2) + Math.random() * (this.width / 2 - w2);
+        let minX = Math.max(0, prevCenter - this.maxJumpDistanceX);
+        let maxX = Math.min(this.width - width, prevCenter + this.maxJumpDistanceX);
 
-            this.addPlatform(x1, this.lastY, w1);
-            this.addPlatform(x2, this.lastY, w2);
+        const x = minX + Math.random() * (maxX - minX);
 
-        } else {
-            // --- Pojedyncza platforma ---
-            const w = minWidth + Math.random() * widthVar + 20; // Nieco szersze niż przy split
-            
-            // Unikaj generowania platformy idealnie na środku cały czas
-            // Losuj pozycję, ale z marginesem od ścian
-            let x = Math.random() * (this.width - w);
-            
-            this.addPlatform(x, this.lastY, w);
-        }
+        this.addPlatform(x, this.lastY, width);
     }
 
     addPlatform(x, y, w) {
-        let type = 'normal';
-        if (Math.random() > 0.65) type = 'ice'; 
-        if (Math.random() > 0.88) type = 'bouncy';
+        const type = this.biomesManager.getPlatformType(y);
 
         const p = new Platform(x, y, w, 20, type);
         this.platforms.push(p);
@@ -72,9 +62,9 @@ export class LevelGenerator {
         }
 
         if (cameraBottomY !== undefined) {
-            const cleanupLine = cameraBottomY + 1500;
-            if (this.platforms.length > 0 && this.platforms[0].y > cleanupLine) {
-                 this.platforms = this.platforms.filter(p => p.y <= cleanupLine);
+            const cleanupLine = cameraBottomY + 1000;
+            if (this.platforms.length > 20 && this.platforms[0].y > cleanupLine) {
+                 this.platforms.shift();
             }
         }
         

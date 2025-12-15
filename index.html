@@ -9,167 +9,185 @@
   <link rel="icon" href="images/jk.png">
   <title>Jump King</title>
   <style>
-        :root {
-            /* Zmienne dla bezpiecznych obszarów (iPhone notch, dolna belka) */
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --safe-left: env(safe-area-inset-left, 0px);
-            --safe-right: env(safe-area-inset-right, 0px);
-        }
+    body {
+        background-color: #1a1a1a;
+        background-image: radial-gradient(circle, #2a2a2a 0%, #000000 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        overflow: hidden;
+    }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #1a1a1a;
-            overflow: hidden; /* Blokuje przewijanie strony ("bounce" effect) */
-            overscroll-behavior: none;
-            touch-action: none; /* Blokuje gesty systemowe na canvasie */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+    #game-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        
+        max-width: 500px;
+        
+        background: #000;
+        overflow: hidden;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    #game-canvas, .ui-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
 
-        #game-container {
-            position: relative;
-            /* Gra zajmuje max szerokość/wysokość, ale zachowuje max szerokość 600px jak typowa gra mobilna na PC */
-            width: 100%;
-            height: 100%; 
-            max-width: 800px; 
-            background: #000;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-        }
+    .ui-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        transition: all 0.5s ease-in-out;
+        z-index: 10;
+    }
 
-        canvas {
-            display: block; 
-            width: 100%;
-            height: 100%;
-            touch-action: none;
-            image-rendering: pixelated; /* Dla stylu pixel-art */
-        }
+    .menu-content {
+        text-align: center;
+        color: white;
+        font-family: 'Segoe UI', sans-serif;
+        transform: scale(1);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            box-sizing: border-box;
-            /* Padding uwzględnia notcha na telefonach */
-            padding-top: var(--safe-top);
-            padding-bottom: var(--safe-bottom);
-            padding-left: var(--safe-left);
-            padding-right: var(--safe-right);
-        }
+    .ui-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+        backdrop-filter: blur(0px);
+    }
 
-        .hud {
-            position: absolute;
-            top: calc(10px + var(--safe-top));
-            left: calc(10px + var(--safe-left));
-            color: white;
-            font-size: clamp(16px, 4vw, 24px); /* Skalowalna czcionka */
-            text-shadow: 2px 2px 0 #000;
-            font-weight: bold;
-        }
+    .ui-overlay.hidden .menu-content {
+        transform: scale(0.8) translateY(50px);
+    }
 
-        #max-height {
-            left: auto;
-            right: calc(10px + var(--safe-right));
-            color: gold;
-        }
+    .game-title {
+        font-size: 4rem;
+        margin-bottom: 0.2em;
+        text-transform: uppercase;
+        text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
 
-        /* Menu */
-        #main-menu, #game-over {
-            pointer-events: auto;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: white;
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border: 4px solid white;
-            display: none;
-            width: 80%;
-            max-width: 300px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+    .highlight { color: #ffcc00; }
+    .subtitle { font-size: 1.2rem; color: #ccc; margin-bottom: 2rem; }
 
-        h1 {
-            margin-top: 0;
-            font-size: clamp(24px, 6vw, 32px);
-            margin-bottom: 10px;
-            color: #ff3232;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+    .ui-btn {
+        display: block;
+        margin: 10px auto;
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        background: white;
+        color: #333;
+        font-weight: bold;
+        transition: transform 0.1s, box-shadow 0.1s;
+        min-width: 200px;
+    }
 
-        p {
-            font-size: clamp(14px, 4vw, 18px);
-            color: #ddd;
-            margin-bottom: 20px;
-        }
+    .ui-btn:active { transform: scale(0.95); }
 
-        button {
-            background: #ff3232;
-            border: none;
-            padding: 12px 30px;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: transform 0.1s, background 0.2s;
-            touch-action: manipulation; /* Szybsza reakcja na dotyk */
-        }
+    .primary-btn {
+        background: linear-gradient(135deg, #ffcc00, #ffaa00);
+        color: #2d1b0e;
+        box-shadow: 0 4px 15px rgba(255, 200, 0, 0.4);
+    }
 
-        button:active {
-            transform: scale(0.95);
-            background: #d00000;
-        }
+    .danger-btn { background: #ff4444; color: white; }
+
+    #pause-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        min-width: unset;
+        border-radius: 50%;
+        padding: 0;
+        font-size: 1.5rem;
+        z-index: 5;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        backdrop-filter: blur(2px);
+    }
+    #pause-btn:hover { background: rgba(255,255,255,0.4); }
+
+    .pause-hidden { display: none !important; }
+
+    #score-display {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: white;
+        font-family: monospace;
+        font-size: 1.5rem;
+        pointer-events: none;
+        text-shadow: 2px 2px 2px black;
+    }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <canvas id="game"></canvas>
-        
-        <div id="ui-layer">
-            <div class="hud">Height: <span id="score-val">0</span>m</div>
-            <div class="hud" id="max-height">Best: <span id="high-score-val">0</span>m</div>
+    <div id="game-container"></div>
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Przycisk Pauzy -->
+        <button id="pause-btn" class="ui-btn pause-hidden">⏸</button>
+
+        <!-- MENU GŁÓWNE -->
+        <div id="main-menu" class="ui-overlay">
+            <div class="menu-content">
+                <h1 class="game-title">JUMP <span class="highlight">KING</span></h1>
+                <p class="subtitle">Wspinaj się ku chwale!</p>
+                <div class="stats-box">
+                    High Score: <span id="high-score-val">0</span>
+                </div>
+                <button id="start-btn" class="ui-btn primary-btn">GRAJ</button>
+            </div>
         </div>
 
-        <div id="main-menu" style="display: block;">
-            <h1>KING CLIMBER</h1>
-            <p>Drag & Release to Jump</p>
-            <button id="start-btn">PLAY</button>
+        <!-- MENU PAUZY -->
+        <div id="pause-menu" class="ui-overlay hidden">
+            <div class="menu-content">
+                <h2>PAUZA</h2>
+                <button id="resume-btn" class="ui-btn">WZNÓW</button>
+                <button id="quit-btn" class="ui-btn danger-btn">MENU GŁÓWNE</button>
+            </div>
         </div>
-        
-        <div id="game-over">
-            <h1>YOU FELL!</h1>
-            <p>Height: <span id="final-score">0</span>m</p>
-            <button id="restart-btn">TRY AGAIN</button>
+
+        <!-- GAME OVER -->
+        <div id="game-over" class="ui-overlay hidden">
+            <div class="menu-content">
+                <h2 class="danger-text">KONIEC GRY</h2>
+                <p>Twój wynik: <span id="final-score">0</span></p>
+                <button id="restart-btn" class="ui-btn primary-btn">SPRÓBUJ PONOWNIE</button>
+                <button id="menu-btn" class="ui-btn">MENU</button>
+            </div>
         </div>
+
+        <!-- WYNIK W TRAKCIE GRY -->
+        <div id="score-display">Wysokość: <span id="score-val">0</span>m</div>
     </div>
 
   <script type="module" src="src/utils/TimeManager.js"></script>
   <script type="module" src="src/app.js"></script>
   <script type="module" src="src/Game.js"></script>
+  <script type="module" src="src/enums.js"></script>
   <script type="module" src="src/systems/animator.js"></script>
   <script type="module" src="src/systems/Camera.js"></script>
   <script type="module" src="src/systems/LevelGenerator.js"></script>
-  <script type="module" src="src/systems/Physics.js"></script>
+  <script type="module" src="src/systems/BiomesManager.js"></script>
   <script type="module" src="src/utils/screenShake.js"></script>
   <script type="module" src="src/utils/vJoyShot.js"></script>
   <script type="module" src="src/entities/Platform.js"></script>
