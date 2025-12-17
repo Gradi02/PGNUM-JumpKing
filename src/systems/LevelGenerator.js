@@ -1,5 +1,6 @@
 import { Platform } from '../entities/Platform.js';
 import { PLATFORM_TYPE } from '../enums.js';
+import { TimeManager } from '../utils/TimeManager.js';
 
 export class LevelGenerator {
     constructor(canvasWidth, player, biomesManager) {
@@ -68,7 +69,8 @@ export class LevelGenerator {
             }
         }
         
-        this.platforms.forEach(p => p.update());
+        let dt = TimeManager.deltaTime;
+        this.platforms.forEach(p => p.update(dt, this.width));
     }
 
     draw(ctx) {

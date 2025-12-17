@@ -1,3 +1,5 @@
+import { PLATFORM_TYPE } from '../enums.js';
+
 export class Player {
     constructor(x, y) {
         this.pos = { x: x, y: y };
@@ -19,26 +21,23 @@ export class Player {
         if (joyShot.force && (joyShot.force.x !== 0 || joyShot.force.y !== 0) && !joyShot.active) {
             if((this.doubleJumpAvailable && !this.isGrounded)){
                 this.doubleJumpAvailable = false;
-
-                this.vel.x = joyShot.force.x * this.jumpForce;
-                this.vel.y = joyShot.force.y * this.jumpForce;
-
-                if (navigator.vibrate) navigator.vibrate(50);
-                joyShot.resetForce(); 
+                this.performJump(joyShot);
                 return;
             }
 
             if (this.isGrounded && (Math.abs(this.vel.x) < 10 && Math.abs(this.vel.y) < 10)) {
-                
-                this.vel.x = joyShot.force.x * this.jumpForce;
-                this.vel.y = joyShot.force.y * this.jumpForce;
-                
                 this.isGrounded = false;
-                
-                if (navigator.vibrate) navigator.vibrate(50);
+                this.performJump(joyShot);
             }
             joyShot.resetForce(); 
         }
+    }
+
+    performJump(joyShot) {
+        this.vel.x = joyShot.force.x * this.jumpForce;
+        this.vel.y = joyShot.force.y * this.jumpForce;
+        if (navigator.vibrate) navigator.vibrate(50);
+        joyShot.resetForce();
     }
 
     update(dt, canvasWidth) {
@@ -64,8 +63,12 @@ export class Player {
         }
     }
 
-    resolvePlatformCollision(platform) {
+    resolvePlatformCollision(platform, dt) {
         if (this.vel.y <= 0) return false;
+
+        if (platform.isBroken) {
+            return false;
+        }
 
         const overlapsX = 
             this.pos.x + this.size > platform.x && 
@@ -74,16 +77,22 @@ export class Player {
         if (!overlapsX) return false;
 
         const feetPos = this.pos.y + this.size;
-        const prevFeetPos = feetPos - (this.vel.y * 0.025); 
+        const prevFeetPos = feetPos - (this.vel.y * dt); 
+        const collisionTolerance = 5;
         const platformTop = platform.y;
 
-        if (prevFeetPos <= platformTop && feetPos >= platformTop) {
-            this.pos.y = platform.y - this.size;
+        if (feetPos >= platformTop && prevFeetPos <= platformTop + collisionTolerance) {
+            this.pos.y = platformTop - this.size;
             this.vel.y = 0;
             this.isGrounded = true;
             
             this.currentFriction = platform.friction;
             platform.special_action(this);
+
+            if (platform.type === PLATFORM_TYPE.MOVING_X) {
+                this.pos.x += platform.getVelX(dt) * dt;
+            }
+
             return true;
         }
         

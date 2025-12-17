@@ -3,13 +3,12 @@ import { TimeManager } from './utils/TimeManager.js';
 import { ScreenShake } from './utils/screenShake.js';
 import { Game } from './Game.js';
 
-// Engine
 const container = document.getElementById('game-container');
 const canvas = document.getElementById('game-canvas');
 const context = canvas.getContext('2d');
 
-const shotController = new vJoyShot(canvas);
-const game = new Game(canvas, shotController);
+let shotController;
+let game;
 
 function resizeCanvas() {
     const width = container.clientWidth;
@@ -23,40 +22,52 @@ function resizeCanvas() {
             game.camera.height = height;
         }
 
-        if (shotController.onResize) {
+        if (shotController && shotController.onResize) {
             shotController.onResize(); 
         }
 
-        game.draw(context);
+        if (game) {
+            game.draw(context);
+        }
     }
 }
-
 
 function loop(now){
     TimeManager.update(now);
     const dt = TimeManager.deltaTime;
     ScreenShake.update(dt);
     
-    game.update(dt);
+    if (game) {
+        game.update(dt);
+    }
     ScreenShake.apply(context);
 
     context.fillStyle = '#111';
     context.fillRect(0, 0, canvas.width, canvas.height);
     
-    game.draw(context);
+    if (game) {
+        game.draw(context);
+    }
     
     ScreenShake.restore(context);
 
     requestAnimationFrame(loop);
 }
 
-
 async function main() {
     resizeCanvas();
+    
+    shotController = new vJoyShot(canvas);
+    game = new Game(canvas, shotController);
+    game.initGameWorld(); 
+
     requestAnimationFrame(loop);
 }
 
-main();
+document.addEventListener('DOMContentLoaded', () => {
+    main();
+});
+
 let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);

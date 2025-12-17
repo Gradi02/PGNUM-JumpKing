@@ -152,7 +152,7 @@ export class Game {
         this.player.isGrounded = false;
 
         for (const p of this.level.platforms) {
-            this.player.resolvePlatformCollision(p);
+            this.player.resolvePlatformCollision(p, dt);
         }
 
         this.camera.update(this.player.pos.y, dt);
