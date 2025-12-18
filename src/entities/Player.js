@@ -1,11 +1,28 @@
 import { PLATFORM_TYPE } from '../enums.js';
+import { Animator } from '../systems/animator.js';
+import { assets } from '../systems/AssetsManager.js';
 
 export class Player {
     constructor(x, y) {
         this.pos = { x: x, y: y };
         this.vel = { x: 0, y: 0 };
-        this.size = 30;
+        this.size = 32;
+        this.visualScale = 3; 
         this.isGrounded = true;
+        this.isDead = false;
+
+        this.facingLeft = false;
+        this.animator = new Animator();
+        const frameSize = 32; 
+        const idleFrames = assets.getAnimationStrip('player', 0, 0, frameSize, frameSize, 4);
+        const riseFrames = assets.getAnimationStrip('player', 0, 8 * frameSize, frameSize, frameSize, 3);
+        const fallFrames = assets.getAnimationStrip('player', 3 * frameSize, 9 * frameSize, frameSize, frameSize, 4);
+        const deadFrames = assets.getAnimationStrip('player', 0, 6 * frameSize, frameSize, frameSize, 4);
+        this.animator.add('idle', idleFrames, 4, true);
+        this.animator.add('rise', riseFrames, 10, false);
+        this.animator.add('fall', fallFrames, 10, false);
+        this.animator.add('dead', deadFrames, 4, false);
+        this.animator.play('idle');
 
         this.currentFriction = 0.8; 
         this.friction = 0.90;
@@ -18,6 +35,8 @@ export class Player {
     }
 
     handleInput(joyShot) {
+        if(this.isDead) return;
+
         if (joyShot.force && (joyShot.force.x !== 0 || joyShot.force.y !== 0) && !joyShot.active) {
             if((this.doubleJumpAvailable && !this.isGrounded)){
                 this.doubleJumpAvailable = false;
@@ -42,6 +61,20 @@ export class Player {
 
     update(dt, canvasWidth) {
         this.vel.y += this.gravity * dt;
+        this.facingLeft = this.vel.x < 0;
+    
+        if(!this.isDead){
+            if (this.isGrounded) {
+                this.animator.play('idle');
+            } else {
+                if (this.vel.y < -1) {
+                    this.animator.play('rise');
+                } else if (this.vel.y > 1) {
+                    this.animator.play('fall');
+                }
+            }
+        }
+        this.animator.update(dt);
 
         if (this.isGrounded) {
             this.vel.x *= this.currentFriction;
@@ -64,7 +97,7 @@ export class Player {
     }
 
     resolvePlatformCollision(platform, dt) {
-        if (this.vel.y <= 0) return false;
+        if (this.vel.y <= 0 || this.isDead) return false;
 
         if (platform.isBroken) {
             return false;
@@ -99,12 +132,27 @@ export class Player {
         return false;
     }
 
-    draw(ctx) {
-        ctx.fillStyle = '#ffcc00';
-        ctx.fillRect(this.pos.x, this.pos.y, this.size, this.size);
+    onDead() {
+        this.isDead = true;
+        this.animator.play('dead', true);
 
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.pos.x, this.pos.y, this.size, this.size);
+        this.vel.y = -400;
+    }
+
+    draw(ctx) {
+        const drawWidth = this.size * this.visualScale;
+        const drawHeight = this.size * this.visualScale;
+
+        const offsetX = (drawWidth - this.size) / 2;
+        const offsetY = (drawHeight - this.size);
+
+        this.animator.draw(
+            ctx, 
+            this.pos.x - offsetX,
+            this.pos.y - offsetY,
+            drawWidth,
+            drawHeight,
+            this.facingLeft
+        );
     }
 }

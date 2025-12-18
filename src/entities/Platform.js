@@ -1,4 +1,5 @@
 import { PLATFORM_TYPE } from "../enums.js";
+import { assets } from "../systems/AssetsManager.js";
 
 export class Platform {
     constructor(x, y, width, height, type = PLATFORM_TYPE.DEFAULT) {
@@ -8,6 +9,7 @@ export class Platform {
         this.height = height;
         this.type = type;
         this.friction = 0.9;
+        this.sprite = null;
 
         if (this.type === undefined || this.type === null) {
             console.warn("Uwaga: Typ platformy to undefined! Ustawiam 'default'. Sprawdź importy w Platform.js");
@@ -16,7 +18,8 @@ export class Platform {
 
         this.initialX = x;
         this.moveRange = 100;
-        this.moveSpeed = 0.2;
+        this.moveSpeed = 1 + Math.random();
+        this.timer = 0; 
         this.prevX = x;
         this.hasAdjustedBounds = false;
         this.movePhaseOffset = Math.random() * Math.PI * 2; 
@@ -25,10 +28,13 @@ export class Platform {
         this.isBroken = false;
 
         this.shakeTimer = 0;
-        this.shakeDuration = 1.5;
+        this.shakeDuration = 0.75;
         this.shakeIntensity = 5;
 
         this.setVisuals();
+
+        this.offscreenCanvas = null; 
+        this.createOffscreenCache();
     }
 
     setVisuals() {
@@ -39,6 +45,7 @@ export class Platform {
                 this.colorBody = '#654321';
                 this.colorTop = '#44aa44';
                 this.friction = 0.8;
+                this.sprite = assets.getSprite('platform_grass');
                 break;
 
             case PLATFORM_TYPE.FLOOR:
@@ -46,6 +53,7 @@ export class Platform {
                 this.colorTop = '#555';
                 this.hasGrass = false;
                 this.friction = 0.8;
+                this.sprite = assets.getSprite('platform_grass_bottom');
                 break;
             
             case PLATFORM_TYPE.ICE:
@@ -53,6 +61,7 @@ export class Platform {
                 this.colorTop = '#fff';
                 this.hasGrass = false;
                 this.friction = 0.98;
+                this.sprite = assets.getSprite('platform_ice');
                 break;
                 
             case PLATFORM_TYPE.BOUNCY:
@@ -60,6 +69,8 @@ export class Platform {
                 this.colorTop = '#ff99cc';
                 this.hasGrass = false;
                 this.friction = 0;
+                this.sprite = assets.getSprite('platform_bounce');
+                this.height = 20;
                 break;
 
             case PLATFORM_TYPE.MOVING_X:
@@ -67,6 +78,8 @@ export class Platform {
                 this.colorTop = '#7b4d8c';
                 this.hasGrass = false;
                 this.friction = 0.7;
+                this.sprite = assets.getSprite('platform_moving');
+                this.height = 20;
                 break;
 
             case PLATFORM_TYPE.BREAKABLE:
@@ -74,6 +87,8 @@ export class Platform {
                 this.colorTop = '#d2b48c';
                 this.hasGrass = true;
                 this.friction = 0.7;
+                this.sprite = assets.getSprite('platform_breakable');
+                this.height = 20;
                 break;
 
             default:
@@ -104,7 +119,8 @@ export class Platform {
                 this.hasAdjustedBounds = true;
             }
 
-            this.x = this.initialX + Math.sin(Date.now() * this.moveSpeed * 0.01 + this.movePhaseOffset) * this.moveRange;
+            this.timer += dt;
+            this.x = this.initialX + Math.sin(this.timer * this.moveSpeed + this.movePhaseOffset) * this.moveRange;
         }
         
         if (this.type === PLATFORM_TYPE.BREAKABLE) {
@@ -139,6 +155,26 @@ export class Platform {
         return 0;
     }
 
+    createOffscreenCache() {        
+        if (this.sprite === null) return false;
+
+        this.offscreenCanvas = document.createElement('canvas');
+        this.offscreenCanvas.width = this.width;
+        this.offscreenCanvas.height = this.height;
+        const ctx = this.offscreenCanvas.getContext('2d');
+
+        const tileW = this.sprite.sw;
+        const tileH = this.sprite.sh;
+
+        for (let dx = 0; dx < this.width; dx += tileW) {
+            for (let dy = 0; dy < this.height; dy += tileH) {
+                this.sprite.draw(ctx, dx, dy);
+            }
+        }
+
+        return true;
+    }
+
     draw(ctx) {
         if (this.type === PLATFORM_TYPE.BREAKABLE && this.isBroken) {
             return;
@@ -163,6 +199,19 @@ export class Platform {
 
         ctx.save();
         ctx.globalAlpha = opacity;
+
+        if (this.sprite !== null) {
+            if (!this.offscreenCanvas) {
+                this.createOffscreenCache();
+            }
+
+            if (this.offscreenCanvas) {
+                ctx.drawImage(this.offscreenCanvas, this.x + offsetX, this.y + offsetY);   
+                ctx.restore();
+                return;
+            }
+        }
+
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#2d1b0e';
 

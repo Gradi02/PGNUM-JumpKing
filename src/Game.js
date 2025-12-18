@@ -43,7 +43,7 @@ export class Game {
     initGameWorld() {
         this.camera.height = this.canvas.height;
         this.player = new Player(this.canvas.width / 2, -100);
-        this.level = new LevelGenerator(this.canvas.width, this.player, this.biomesManager);
+        this.level = new LevelGenerator(this.canvas.width, this.canvas.height, this.player, this.biomesManager);
         
         this.generateBackground();
 
@@ -145,6 +145,10 @@ export class Game {
     }
 
     update(dt) {
+        if(this.state === GAME_STATE.GAMEOVER) {
+            this.player.update(dt, this.canvas.width);
+        }
+
         if (this.state !== GAME_STATE.PLAYING) return;
 
         this.player.handleInput(this.shotController);
@@ -235,17 +239,23 @@ export class Game {
     gameOver() {
         this.state = GAME_STATE.GAMEOVER;
         
-        this.ui.gameOver.classList.remove('hidden');
-        this.ui.pauseBtn.classList.add('pause-hidden');
-        
-        this.ui.finalScore.innerText = this.score;
-        
+        if (this.player) {
+            this.player.onDead();
+        }
+
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('jumpking_highscore', this.highScore);
-            this.ui.highScore.innerText = this.highScore;
         }
-        
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+        setTimeout(() => {
+            this.ui.gameOver.classList.remove('hidden');
+            this.ui.pauseBtn.classList.add('pause-hidden');
+            this.ui.finalScore.innerText = this.score;
+            this.ui.highScore.innerText = this.highScore;
+
+        }, 1500); 
     }
 }

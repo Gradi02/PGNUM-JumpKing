@@ -3,9 +3,10 @@ import { PLATFORM_TYPE } from '../enums.js';
 import { TimeManager } from '../utils/TimeManager.js';
 
 export class LevelGenerator {
-    constructor(canvasWidth, player, biomesManager) {
+    constructor(canvasWidth, canvasHeight, player, biomesManager) {
         this.platforms = [];
         this.width = canvasWidth;
+        this.height = canvasHeight; 
         this.player = player;
         this.biomesManager = biomesManager;
 
@@ -23,7 +24,12 @@ export class LevelGenerator {
         this.rowSpacing = Math.floor(this.maxJumpHeight / this.N); 
 
         this.lastY = 0;
-        this.platforms.push(new Platform(0, 0, canvasWidth, 40, PLATFORM_TYPE.FLOOR));
+        const tileHeight = 32;
+        this.platforms.push(new Platform(0, 0, canvasWidth, tileHeight, PLATFORM_TYPE.DEFAULT));
+        for (let currentY = tileHeight; currentY < canvasHeight; currentY += tileHeight) {
+            this.platforms.push(new Platform(0, currentY, canvasWidth, tileHeight, PLATFORM_TYPE.FLOOR));
+        }
+
         this.generateChunk(-1200);
     }
 
@@ -52,7 +58,7 @@ export class LevelGenerator {
     addPlatform(x, y, w) {
         const type = this.biomesManager.getPlatformType(y);
 
-        const p = new Platform(x, y, w, 20, type);
+        const p = new Platform(x, y, w, 30, type);
         this.platforms.push(p);
     }
     

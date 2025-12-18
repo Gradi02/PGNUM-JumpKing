@@ -19,5 +19,5 @@ export const BIOME_TYPE = {
   WINTER_LAND: 1,
   SKY_CITY: 2,
   VOLCANO: 3,
-  FOREST_OF_DEATH: 4,
+  FUTURE: 4,
 };

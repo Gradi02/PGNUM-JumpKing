@@ -9,7 +9,7 @@ export class BiomesManager {
             { limit: -2000, type: BIOME_TYPE.WINTER_LAND },
             { limit: -3000, type: BIOME_TYPE.SKY_CITY },
             { limit: -11000, type: BIOME_TYPE.VOLCANO },
-            { limit: -Infinity, type: BIOME_TYPE.FOREST_OF_DEATH }
+            { limit: -Infinity, type: BIOME_TYPE.FUTURE }
         ];
 
         this.biomeConfigs = {
@@ -41,7 +41,7 @@ export class BiomesManager {
                 bouncyChance: 0.10,
                 bgColor: '#3a0c0c'
             },
-            [BIOME_TYPE.FOREST_OF_DEATH]: {
+            [BIOME_TYPE.FUTURE]: {
                 breakableChance: 0.20,
                 movingXChance: 0.50,
                 iceChance: 0.0,
@@ -57,7 +57,7 @@ export class BiomesManager {
                 return zone.type;
             }
         }
-        return BIOME_TYPE.FOREST_OF_DEATH;
+        return BIOME_TYPE.FUTURE;
     }
 
     getPlatformType(y) {
