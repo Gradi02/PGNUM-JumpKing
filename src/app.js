@@ -16,8 +16,8 @@ let shotController;
 let game;
 
 const gameAssets = {
-    'atlas': '../images/assets.png',
-    'player': '../images/cat.png'
+    'atlas': 'images/assets.png',
+    'player': 'images/cat.png'
 };
 
 function resizeCanvas() {
