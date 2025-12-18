@@ -19,6 +19,8 @@ const ASSETS_TO_CACHE = [
   './src/utils/vJoyShot.js',
   './manifest.json',
   './images/jk.png',
+  './images/assets.png',
+  './images/cat.png',
 ];
 
 self.addEventListener('install', (e) => {
