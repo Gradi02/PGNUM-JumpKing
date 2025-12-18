@@ -136,7 +136,7 @@ export class Player {
         this.isDead = true;
         this.animator.play('dead', true);
 
-        this.vel.y = -400;
+        this.vel.y = -600;
     }
 
     draw(ctx) {

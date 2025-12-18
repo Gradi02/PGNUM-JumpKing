@@ -2,6 +2,7 @@ import { BIOME_TYPE, PLATFORM_TYPE } from '../enums.js';
 
 export class BiomesManager {
     constructor() {
+        this.transitionRange = 600;
         this.currentBiome = BIOME_TYPE.GRASSLANDS;
         
         this.zones = [
@@ -49,6 +50,21 @@ export class BiomesManager {
                 bgColor: '#081a08'
             }
         };
+
+        for (let key in this.biomeConfigs) {
+            this.biomeConfigs[key].rgb = this.hexToRgb(this.biomeConfigs[key].bgColor);
+        }
+    }
+
+    hexToRgb(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return { r, g, b };
+    }
+
+    lerp(start, end, t) {
+        return Math.round(start + (end - start) * t);
     }
 
     getBiomeAtHeight(y) {
@@ -93,7 +109,36 @@ export class BiomesManager {
         this.currentBiome = this.getBiomeAtHeight(playerY);
     }
 
-    getCurrentBgColor() {
-        return this.biomeConfigs[this.currentBiome].bgColor;
+    getCurrentBgColor(y) {
+        let currentZoneIdx = 0;
+        for (let i = 0; i < this.zones.length; i++) {
+            if (y > this.zones[i].limit) {
+                currentZoneIdx = i;
+                break;
+            }
+        }
+
+        const currentZone = this.zones[currentZoneIdx];
+        const nextZone = this.zones[currentZoneIdx + 1];
+
+        if (!nextZone) return this.biomeConfigs[currentZone.type].bgColor;
+
+        const colorA = this.biomeConfigs[currentZone.type].rgb;
+        const colorB = this.biomeConfigs[nextZone.type].rgb;
+
+        const distanceToLimit = y - currentZone.limit;
+        let t = 0;
+        if (distanceToLimit < this.transitionRange / 2) {
+            t = Math.max(0, Math.min(1, 0.5 - (distanceToLimit / this.transitionRange)));
+        }
+
+        if (t === 0) return this.biomeConfigs[currentZone.type].bgColor;
+        if (t === 1) return this.biomeConfigs[nextZone.type].bgColor;
+
+        const r = this.lerp(colorA.r, colorB.r, t);
+        const g = this.lerp(colorA.g, colorB.g, t);
+        const b = this.lerp(colorA.b, colorB.b, t);
+
+        return `rgb(${r}, ${g}, ${b})`;
     }
 }

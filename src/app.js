@@ -60,6 +60,7 @@ function loop(now){
     }
     
     ScreenShake.restore(context);
+    game.camera.draw(context, canvas.width);
 
     requestAnimationFrame(loop);
 }

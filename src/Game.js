@@ -43,34 +43,13 @@ export class Game {
     initGameWorld() {
         this.camera.height = this.canvas.height;
         this.player = new Player(this.canvas.width / 2, -100);
-        this.level = new LevelGenerator(this.canvas.width, this.canvas.height, this.player, this.biomesManager);
-        
-        this.generateBackground();
+        this.level = new LevelGenerator(this.canvas.width, this.canvas.height, this.player, this.biomesManager, this.camera);
 
         this.camera.reset(this.player.pos.y);
         this.level.update(this.camera.y, this.camera.bottom);
         
         this.score = 0;
         this.ui.score.innerText = '0';
-    }
-
-    generateBackground() {
-        this.bgElements = [];
-        
-        const density = 50; 
-        const maxHeight = this.canvas.height * 20;
-
-        for(let i = 0; i < density; i++) {
-            const depth = Math.random() * 0.4 + 0.1; 
-            
-            this.bgElements.push({
-                x: Math.random() * (this.canvas.width * 1.5) - (this.canvas.width * 0.25),
-                y: -Math.random() * maxHeight + this.canvas.height,
-                radius: Math.random() * 60 + 20,
-                depth: depth,
-                color: `rgba(255, 255, 255, ${depth * 0.15})`
-            });
-        }
     }
 
     bindEvents() {
@@ -176,25 +155,14 @@ export class Game {
     }
 
     draw(ctx) {
-        // ZMIANA KOLORU TŁA W ZALEŻNOŚCI OD BIOMU
-        // Możemy to robić tutaj, albo w pętli loop w app.js. 
-        // Ponieważ w app.js czyścimy ekran, tam najlepiej ustawić kolor.
-        // Ale możemy narysować prostokąt tła tutaj:
-        
         ctx.save();
-        // Reset transformacji dla tła
         ctx.setTransform(1, 0, 0, 1, 0, 0); 
-        ctx.fillStyle = this.biomesManager.getCurrentBgColor();
+        ctx.fillStyle = this.biomesManager.getCurrentBgColor(this.player.pos.y);
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.restore();
 
-        // Rysowanie paralaksy
-        this.drawParallaxBackground(ctx);
-
         ctx.save();
         ctx.translate(0, -Math.floor(this.camera.y));
-
-        this.drawBackgroundGrid(ctx);
 
         this.level.draw(ctx);
         this.player.draw(ctx);
@@ -204,36 +172,6 @@ export class Game {
         if (this.state === GAME_STATE.PLAYING) {
             this.shotController.draw(ctx);
         }
-    }
-    
-    drawParallaxBackground(ctx) {
-        const playerOffsetX = (this.player.pos.x - (this.canvas.width / 2));
-
-        this.bgElements.forEach(el => {
-            const moveX = playerOffsetX * 0.2 * el.depth;
-            const drawX = el.x - moveX;
-            const drawY = el.y - (this.camera.y * el.depth);
-
-            ctx.fillStyle = el.color;
-            ctx.beginPath();
-            ctx.arc(drawX, drawY, el.radius, 0, Math.PI * 2);
-            ctx.fill();
-        });
-    }
-
-    drawBackgroundGrid(ctx) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        
-        const startY = Math.floor(this.camera.y / 100) * 100;
-        const endY = this.camera.bottom + 100;
-
-        for(let y = startY; y < endY; y += 100) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(this.canvas.width, y);
-        }
-        ctx.stroke();
     }
 
     gameOver() {
