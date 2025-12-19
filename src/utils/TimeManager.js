@@ -4,6 +4,7 @@ export class TimeManager {
     static #maxDeltaTime = 0.05;
 
     static deltaTime = 0;
+    static unscaledDeltaTime = 0;
 
     static update(now) {
         if (this.#lastTime === 0) {
@@ -12,6 +13,9 @@ export class TimeManager {
 
         const rawDeltaTime = (now - this.#lastTime) / 1000;
         const cappedDeltaTime = Math.min(rawDeltaTime, this.#maxDeltaTime);
+
+        this.unscaledDeltaTime = cappedDeltaTime; 
+        
         this.deltaTime = cappedDeltaTime * this.#timeScale;
         this.#lastTime = now;
     }

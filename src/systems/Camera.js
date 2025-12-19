@@ -1,6 +1,9 @@
+import { particles } from './ParticleSystem.js';
+
 export class Camera {
-    constructor(canvasHeight) {
+    constructor(canvasHeight, logicWidth) {
         this.height = canvasHeight;
+        this.logicWidth = logicWidth;
         this.y = 0;
     
         this.startOffsetRatio = 0.75; 
@@ -21,6 +24,10 @@ export class Camera {
             const targetCamY = targetY - (this.height * this.scrollThresholdRatio);
             this.y += (targetCamY - this.y) * this.lerpSpeed * dt;
         }
+
+        if (Math.random() < 0.1) {
+            particles.emitLine('lava_fumes', 0, this.height,this.logicWidth, this.height, 5);
+        }
     }
 
     draw(ctx, canvasWidth) {
@@ -30,7 +37,7 @@ export class Camera {
         );
 
         gradient.addColorStop(0, 'rgba(255, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.4)');
+        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.2)');
 
         ctx.fillStyle = gradient;
         ctx.save();

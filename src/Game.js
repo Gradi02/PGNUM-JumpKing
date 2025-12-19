@@ -3,16 +3,22 @@ import { LevelGenerator } from './systems/LevelGenerator.js';
 import { Camera } from './systems/Camera.js';
 import { GAME_STATE } from './enums.js';
 import { BiomesManager } from './systems/BiomesManager.js';
+import { particles } from './systems/ParticleSystem.js';    
 
 export class Game {
     constructor(canvas, shotController) {
         this.canvas = canvas;
         this.shotController = shotController;
 
+        this.DESIGN_WIDTH = 500; 
+        this.scale = 1;
+        this.virtualWidth = this.DESIGN_WIDTH;
+        this.virtualHeight = this.canvas.height;
+
         this.player = null;
         this.biomesManager = new BiomesManager();
         this.level = null;
-        this.camera = new Camera(canvas.height);
+        this.camera = null;
         
         this.score = 0;
         this.highScore = localStorage.getItem('jumpking_highscore') || 0;
@@ -36,20 +42,86 @@ export class Game {
         };
 
         this.ui.highScore.innerText = Math.floor(this.highScore);
+        this.resize(); 
         this.initGameWorld();
         this.bindEvents();
+        this.initParticles();
     }
 
     initGameWorld() {
-        this.camera.height = this.canvas.height;
-        this.player = new Player(this.canvas.width / 2, -100);
-        this.level = new LevelGenerator(this.canvas.width, this.canvas.height, this.player, this.biomesManager, this.camera);
+        this.camera = new Camera(this.virtualHeight, this.virtualWidth);
+        this.player = new Player(this.virtualWidth / 2, -100);
+        this.level = new LevelGenerator(this.virtualWidth, this.virtualHeight, this.player, this.biomesManager, this.camera);
 
         this.camera.reset(this.player.pos.y);
         this.level.update(this.camera.y, this.camera.bottom);
         
         this.score = 0;
         this.ui.score.innerText = '0';
+    }
+
+    initParticles() {
+
+        // Player Death
+        particles.addPreset('blood', {
+            color: ['#ff0000', '#8a0303', '#ff4d4d'],
+            size: { min: 4, max: 8 },
+            speed: { min: 600, max: 1000 },
+            angle: { min: 0, max: 360 },
+            life: { min: 1, max: 1.5 },
+            gravity: 1000,
+            friction: 0.95,
+            spread: 10,
+            shrink: true
+        });
+
+        // Player Jump
+        particles.addPreset('dust', {
+            color: ['#dddddd', '#999999'],
+            size: { min: 5, max: 8 },
+            speed: { min: 10, max: 40 },
+            angle: { min: 200, max: 340 },
+            life: { min: 0.2, max: 0.5 },
+            gravity: -100,
+            spread: 10,
+            fade: true
+        });
+        
+        // Player Trail
+        particles.addPreset('trail', {
+            color: ['#eeeeee4d'],
+            size: { min: 3, max: 5 },
+            speed: { min: 5, max: 20 },
+            angle: { min: 200, max: 340 },
+            life: { min: 0.1, max: 0.25 },
+            gravity: -100,
+            spread: 5,
+            fade: true
+        });
+
+        // Lava Fumes
+        particles.addPreset('lava_fumes', {
+            color: ['#ff4d4d80', '#ffaa0080', '#cc202080'], 
+            size: { min: 2, max: 6 },
+            speed: { min: 20, max: 50 },
+            angle: { min: 260, max: 280 },
+            life: { min: 1.0, max: 2.0 },
+            gravity: -50,
+            friction: 0.98,
+            fade: true,
+            shrink: true,
+            ui: true,
+        });
+        
+        // Collect Item
+        particles.addPreset('sparkle', {
+            color: '#FFFF00',
+            size: { min: 2, max: 3 },
+            speed: { min: 60, max: 120 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.3, max: 0.6 },
+            friction: 0.9
+        });
     }
 
     bindEvents() {
@@ -89,6 +161,19 @@ export class Game {
         });
     }
 
+    resize() {
+        const width = this.canvas.width;
+        
+        if (width === 0) return;
+
+        this.scale = width / this.DESIGN_WIDTH;
+        this.virtualHeight = this.canvas.height / this.scale;
+
+        if (this.camera) {
+            this.camera.height = this.virtualHeight;
+        }
+    }
+
     startGame() {
         this.state = GAME_STATE.PLAYING;
         
@@ -125,13 +210,15 @@ export class Game {
 
     update(dt) {
         if(this.state === GAME_STATE.GAMEOVER) {
-            this.player.update(dt, this.canvas.width);
+            this.player.update(dt, this.virtualWidth);
+            particles.update();
         }
 
         if (this.state !== GAME_STATE.PLAYING) return;
 
         this.player.handleInput(this.shotController);
-        this.player.update(dt, this.canvas.width);
+        this.player.update(dt, this.virtualWidth);
+        particles.update();
         this.player.isGrounded = false;
 
         for (const p of this.level.platforms) {
@@ -162,10 +249,12 @@ export class Game {
         ctx.restore();
 
         ctx.save();
+        ctx.scale(this.scale, this.scale);
         ctx.translate(0, -Math.floor(this.camera.y));
 
         this.level.draw(ctx);
         this.player.draw(ctx);
+        particles.draw(ctx, this.camera);
 
         ctx.restore();
 

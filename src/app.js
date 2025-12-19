@@ -28,8 +28,12 @@ function resizeCanvas() {
         canvas.width = width;
         canvas.height = height;
 
-        if (game && game.camera) {
-            game.camera.height = height;
+        if (game) {
+            game.resize();
+
+            if(game.camera) {
+                game.camera.height = height;
+            }
         }
 
         if (shotController && shotController.onResize) {

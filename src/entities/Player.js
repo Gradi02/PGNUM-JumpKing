@@ -1,6 +1,7 @@
 import { PLATFORM_TYPE } from '../enums.js';
 import { Animator } from '../systems/animator.js';
 import { assets } from '../systems/AssetsManager.js';
+import { particles } from '../systems/ParticleSystem.js';
 
 export class Player {
     constructor(x, y) {
@@ -53,6 +54,8 @@ export class Player {
     }
 
     performJump(joyShot) {
+        particles.emit('dust', this.pos.x + this.size/2, this.pos.y + this.size, 15);
+
         this.vel.x = joyShot.force.x * this.jumpForce;
         this.vel.y = joyShot.force.y * this.jumpForce;
         if (navigator.vibrate) navigator.vibrate(50);
@@ -67,6 +70,7 @@ export class Player {
             if (this.isGrounded) {
                 this.animator.play('idle');
             } else {
+                particles.emit('trail', this.pos.x + this.size/2, this.pos.y, 1);
                 if (this.vel.y < -1) {
                     this.animator.play('rise');
                 } else if (this.vel.y > 1) {
@@ -137,9 +141,11 @@ export class Player {
         this.animator.play('dead', true);
 
         this.vel.y = -600;
+        particles.emit('blood', this.pos.x + this.size/2, this.pos.y + this.size/2, 50);
     }
 
     draw(ctx) {
+        ctx.imageSmoothingEnabled = false; 
         const drawWidth = this.size * this.visualScale;
         const drawHeight = this.size * this.visualScale;
 
