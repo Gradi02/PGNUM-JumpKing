@@ -4,6 +4,7 @@ import { Camera } from './systems/Camera.js';
 import { GAME_STATE } from './enums.js';
 import { BiomesManager } from './systems/BiomesManager.js';
 import { particles } from './systems/ParticleSystem.js';    
+import { ScreenShake } from './utils/screenShake.js';
 
 export class Game {
     constructor(canvas, shotController) {
@@ -185,6 +186,10 @@ export class Game {
         if (this.camera) {
             this.camera.height = this.virtualHeight;
         }
+
+        if(this.shotController && this.shotController.onResize) {
+            this.shotController.onResize(this.virtualWidth, this.virtualHeight); 
+        }
     }
 
     startGame() {
@@ -278,6 +283,7 @@ export class Game {
 
     gameOver() {
         this.state = GAME_STATE.GAMEOVER;
+        ScreenShake.shake(0.5, 10);
         
         if (this.player) {
             this.player.onDead();

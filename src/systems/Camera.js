@@ -26,7 +26,7 @@ export class Camera {
         }
 
         if (Math.random() < 0.1) {
-            particles.emitLine('lava_fumes', 0, this.height,this.logicWidth, this.height, 5);
+            particles.emitLine('lava_fumes', 0, this.height, this.logicWidth, this.height, 5);
         }
     }
 
@@ -37,7 +37,7 @@ export class Camera {
         );
 
         gradient.addColorStop(0, 'rgba(255, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.2)');
+        gradient.addColorStop(1, 'rgba(255, 0, 0, 0.3)');
 
         ctx.fillStyle = gradient;
         ctx.save();

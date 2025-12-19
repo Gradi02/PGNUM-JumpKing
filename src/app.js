@@ -36,10 +36,6 @@ function resizeCanvas() {
             }
         }
 
-        if (shotController && shotController.onResize) {
-            shotController.onResize(); 
-        }
-
         if (game) {
             game.draw(context);
         }

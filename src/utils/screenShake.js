@@ -7,6 +7,13 @@ export class ScreenShake {
         this.#duration = Math.max(this.#duration, duration);
         this.#magnitude = Math.max(this.#magnitude, magnitude);
         this.#elapsed = 0;
+
+        if (magnitude > 2) { 
+            const ms = Math.floor(duration * 1000);
+            const safeMs = Math.min(ms, 1000); 
+
+            navigator.vibrate(safeMs);
+        }
     }
 
     static update(dt) {

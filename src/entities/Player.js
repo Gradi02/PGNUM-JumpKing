@@ -58,7 +58,6 @@ export class Player {
 
         this.vel.x = joyShot.force.x * this.jumpForce;
         this.vel.y = joyShot.force.y * this.jumpForce;
-        if (navigator.vibrate) navigator.vibrate(50);
         joyShot.resetForce();
     }
 

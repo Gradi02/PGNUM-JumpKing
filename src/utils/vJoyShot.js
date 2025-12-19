@@ -4,8 +4,11 @@ import { ScreenShake } from '../utils/screenShake.js';
 export class vJoyShot {
     constructor(canvas) {
         this.canvas = canvas;
+        this.virtualWidth = null;
+        this.virtualHeight = null;
         
-        this.maxDragDist = 100;
+        this.baseDragDist = 50; 
+        this.maxDragDist = 50; 
         this.maxOutputForce = 26;
         
         this.active = false;
@@ -14,6 +17,11 @@ export class vJoyShot {
         this.force = { x: 0, y: 0 };
         
         this._bindEvents();
+    }
+
+    onResize(virtualWidth, virtualHeight) {
+        const scaleFactor = this.canvas.height / virtualHeight; 
+        this.maxDragDist = this.baseDragDist * (scaleFactor < 1 ? 1 : scaleFactor);
     }
 
     _bindEvents() {
@@ -87,7 +95,7 @@ export class vJoyShot {
         this.force = { x: 0, y: 0 };
     }
 
-   draw(ctx) {
+    draw(ctx) {
         if (!this.active) return;
 
         const dx = this.start.x - this.current.x;
