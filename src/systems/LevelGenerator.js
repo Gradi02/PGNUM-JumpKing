@@ -69,7 +69,7 @@ export class LevelGenerator {
         this.lastY -= this.rowSpacing;
         const prevPlatform = this.platforms[this.platforms.length - 1];
         const prevCenter = prevPlatform ? (prevPlatform.x + prevPlatform.width / 2) : (this.width / 2);
-        const heightFactor = Math.min(1, Math.abs(this.lastY) / 100000);
+        const heightFactor = Math.min(1, Math.abs(this.lastY) / 10000);
 
         const width = 90 + Math.random() * 60 - (30 * heightFactor);
             

@@ -112,6 +112,19 @@ export class Game {
             shrink: true,
             ui: true,
         });
+
+        // Breaking
+        particles.addPreset('breaking', {
+            color: ['#ffde4d80', '#ffaa0080', '#cc812080', '#66220080', '#33110080'], 
+            size: { min: 2, max: 6 },
+            speed: { min: 20, max: 50 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.25, max: 1.0 },
+            gravity: 600,
+            friction: 0.98,
+            fade: true,
+            shrink: true,
+        });
         
         // Collect Item
         particles.addPreset('sparkle', {

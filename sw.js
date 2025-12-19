@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   './src/systems/BiomesManager.js',
   './src/systems/AssetsManager.js',
   './src/systems/Sprite.js',
+  './src/systems/ParticleSystem.js',
   './src/enums.js',
   './src/entities/Platform.js',
   './src/entities/Player.js',

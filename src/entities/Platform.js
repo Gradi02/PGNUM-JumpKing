@@ -1,5 +1,6 @@
 import { PLATFORM_TYPE } from "../enums.js";
 import { assets } from "../systems/AssetsManager.js";
+import { particles } from "../systems/ParticleSystem.js";
 
 export class Platform {
     constructor(x, y, width, height, type = PLATFORM_TYPE.DEFAULT) {
@@ -130,6 +131,7 @@ export class Platform {
                 if (this.shakeTimer >= this.shakeDuration) {
                     this.isBroken = true;
                     this.shakeTimer = 0;
+                    particles.emitRect('breaking', this.x, this.y, this.width, this.height, 20);
                 }
             }
         }
@@ -185,16 +187,44 @@ export class Platform {
         let opacity = 1;
 
         if (this.type === PLATFORM_TYPE.BREAKABLE && this.hadBreakingStarted) {
-            const progress = this.shakeTimer / this.shakeDuration;
-            
-            const currentShake = this.shakeIntensity;
-            offsetX = (Math.random() - 0.5) * currentShake * 2;
-            offsetY = (Math.random() - 0.5) * currentShake * 2;
+            let progress = this.shakeTimer / this.shakeDuration;
 
-            if (progress > 0.8) {
-                opacity = 1 - ((progress - 0.8) * 5);
+            const shakeFactor = Math.pow(progress, 2) * 3; 
+            const currentShake = this.shakeIntensity * shakeFactor;
+            
+            offsetX = (Math.random() - 0.5) * currentShake;
+            offsetY = (Math.random() - 0.5) * currentShake;
+            const bulge = Math.sin(progress * Math.PI * 4) * (progress * 0.15); 
+
+            let flashWhite = false;
+            if (progress > 0.5) {
+                if (Math.floor(Date.now() / 50) % 2 === 0) {
+                    flashWhite = true;
+                }
+            }
+
+            if (progress > 0.85) {
+                opacity = 1 - ((progress - 0.85) * 6.6);
                 if (opacity < 0) opacity = 0;
             }
+            ctx.save();
+            
+            const centerX = this.x + this.width / 2 + offsetX;
+            const centerY = this.y + this.height / 2 + offsetY;
+            ctx.translate(centerX, centerY);
+
+            const scale = 1 + bulge;
+            ctx.scale(scale, scale);
+            ctx.globalAlpha = opacity;
+
+            if (flashWhite) {
+                ctx.globalCompositeOperation = 'screen'; 
+            }
+
+            ctx.fillStyle = flashWhite ? '#ffcccc' : 'brown';
+            ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+            ctx.restore();
+
         }
 
         ctx.save();

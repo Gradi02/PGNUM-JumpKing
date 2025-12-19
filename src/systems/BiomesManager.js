@@ -6,10 +6,10 @@ export class BiomesManager {
         this.currentBiome = BIOME_TYPE.GRASSLANDS;
         
         this.zones = [
-            { limit: -1000, type: BIOME_TYPE.GRASSLANDS },
-            { limit: -2000, type: BIOME_TYPE.WINTER_LAND },
-            { limit: -3000, type: BIOME_TYPE.SKY_CITY },
-            { limit: -11000, type: BIOME_TYPE.VOLCANO },
+            { limit: -5000, type: BIOME_TYPE.GRASSLANDS },
+            { limit: -11000, type: BIOME_TYPE.WINTER_LAND },
+            { limit: -25000, type: BIOME_TYPE.SKY_CITY },
+            { limit: -50000, type: BIOME_TYPE.VOLCANO },
             { limit: -Infinity, type: BIOME_TYPE.FUTURE }
         ];
 
