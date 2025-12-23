@@ -1,11 +1,15 @@
 import { Platform } from '../entities/Platform.js';
 import { PLATFORM_TYPE } from '../enums.js';
 import { TimeManager } from '../utils/TimeManager.js';
+import { PowerUp } from '../entities/PowerUp.js';
+import { assets } from '../systems/AssetsManager.js';
 
 export class LevelGenerator {
     constructor(canvasWidth, canvasHeight, player, biomesManager, camera) {
         this.platforms = [];
         this.bgElements = [];
+        this.powerups = [];
+
         this.width = canvasWidth;
         this.height = canvasHeight; 
         this.player = player;
@@ -15,6 +19,7 @@ export class LevelGenerator {
         const gravity = 1500;
         const jumpForceMultiplier = 40;
         const maxInputForce = 26;
+        this.powerupSpawnChance = 0.1;
 
         const maxVel = maxInputForce * jumpForceMultiplier;
         this.maxJumpHeight = (maxVel * maxVel) / (2 * gravity);
@@ -85,27 +90,46 @@ export class LevelGenerator {
         const type = this.biomesManager.getPlatformType(y);
         const p = new Platform(x, y, w, 30, type);
         this.platforms.push(p);
+
+        if (y < -200) {
+            this.trySpawnPowerUp(x, y, w);
+        }
     }
     
+    trySpawnPowerUp(x, y, platformWidth) {
+        if (Math.random() < this.powerupSpawnChance) {
+            const types = ['TOTEM', 'STRENGTH']; 
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            
+            const pX = x + (platformWidth / 2) - 16;
+            const pY = y - 40; 
+
+            const sprite = assets.getSprite(`powerup_${randomType.toLowerCase()}`);
+            this.powerups.push(new PowerUp(pX, pY, randomType, sprite));
+        }
+    }
+
     update(cameraTopY, cameraBottomY) {
         const generationHorizon = cameraTopY - 800; 
         if (this.lastY > generationHorizon) {
             this.generateChunk(generationHorizon - 800);
         }
 
-        if (cameraBottomY !== undefined) {
-            const cleanupLine = cameraBottomY + 1200;
-            if (this.platforms.length > 20 && this.platforms[0].y > cleanupLine) {
-                 this.platforms.shift();
-            }
+        const cleanupLine = cameraBottomY + 1200;
 
-            if (this.bgElements.length > 100 && this.bgElements[0].y > cleanupLine + 1000) {
-                this.bgElements = this.bgElements.filter(el => el.y < cleanupLine);
-            }
+        if (this.platforms.length > 20 && this.platforms[0].y > cleanupLine) {
+            this.platforms.shift();
+        }
+        this.powerups = this.powerups.filter(p => p.y < cleanupLine && !p.isCollected);
+
+
+        if (this.bgElements.length > 100 && this.bgElements[0].y > cleanupLine + 1000) {
+            this.bgElements = this.bgElements.filter(el => el.y < cleanupLine);
         }
         
         let dt = TimeManager.deltaTime;
         this.platforms.forEach(p => p.update(dt, this.width));
+        this.powerups.forEach(p => p.update(dt, this.player));
     }
 
     drawParallaxBackground(ctx) {
@@ -128,7 +152,12 @@ export class LevelGenerator {
 
     draw(ctx) {
         this.drawParallaxBackground(ctx);
+
         for (const p of this.platforms) {
+            p.draw(ctx);
+        }
+
+        for (const p of this.powerups) {
             p.draw(ctx);
         }
     }

@@ -7,186 +7,202 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="images/jk.png">
   <link rel="icon" href="images/jk.png">
-  <title>Jump King</title>
+  <title>Jump Cat King</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
+    :root {
+        --primary: #ffcc00;
+        --primary-dark: #b89500;
+        --danger: #ff4444;
+        --bg-overlay: rgba(20, 20, 25, 0.85);
+        --pixel-shadow: 4px 4px 0px #000;
+        --pixel-shadow-active: 2px 2px 0px #000;
+    }
+
     body {
         background-color: #1a1a1a;
-        background-image: radial-gradient(circle, #2a2a2a 0%, #000000 100%);
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Press Start 2P', cursive;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        width: 100vw;
-        margin: 0;
-        overflow: hidden;
     }
 
     #game-container {
         position: relative;
         width: 100%;
         height: 100%;
-        
         max-width: min(500px, 60vh); 
         aspect-ratio: 9/16; 
-        
         background: #000;
         overflow: hidden;
-        box-shadow: 0 0 50px rgba(0,0,0,0.5);
-
-        margin: auto;
     }
 
-    #game-canvas, .ui-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
+    canvas {
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
         width: 100%;
         height: 100%;
     }
 
     .ui-overlay {
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
+        inset: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(5px);
-        transition: all 0.5s ease-in-out;
+        background: var(--bg-overlay);
         z-index: 10;
-    }
-
-    .menu-content {
-        text-align: center;
-        color: white;
-        font-family: 'Segoe UI', sans-serif;
-        transform: scale(1);
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: opacity 0.3s;
     }
 
     .ui-overlay.hidden {
         opacity: 0;
         pointer-events: none;
-        backdrop-filter: blur(0px);
     }
 
-    .ui-overlay.hidden .menu-content {
-        transform: scale(0.8) translateY(50px);
+    .menu-content {
+        width: 80%;
+        text-align: center;
+        color: white;
     }
 
     .game-title {
-        font-size: 4rem;
-        margin-bottom: 0.2em;
-        text-transform: uppercase;
-        text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+        line-height: 1.4;
+        color: white;
+        text-shadow: 5px 5px 0px #4a4a4a;
     }
 
-    .highlight { color: #ffcc00; }
-    .subtitle { font-size: 1.2rem; color: #ccc; margin-bottom: 2rem; }
+    .highlight { color: var(--primary); }
+    
+    .stats-box {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border: 1px solid white;
+        margin-bottom: 30px;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
 
     .ui-btn {
         display: block;
-        margin: 10px auto;
-        padding: 15px 40px;
-        font-size: 1.2rem;
-        border: none;
-        border-radius: 50px;
+        width: 100%;
+        margin: 15px 0;
+        padding: 15px 10px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.8rem;
+        border: 4px solid #000;
         cursor: pointer;
-        background: white;
-        color: #333;
-        font-weight: bold;
-        transition: transform 0.1s, box-shadow 0.1s;
-        min-width: 200px;
+        position: relative;
+        background: #fff;
+        box-shadow: var(--pixel-shadow);
+        transition: transform 0.05s, box-shadow 0.05s;
     }
 
-    .ui-btn:active { transform: scale(0.95); }
-
-    .primary-btn {
-        background: linear-gradient(135deg, #ffcc00, #ffaa00);
-        color: #2d1b0e;
-        box-shadow: 0 4px 15px rgba(255, 200, 0, 0.4);
+    .ui-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: var(--pixel-shadow-active);
     }
 
-    .danger-btn { background: #ff4444; color: white; }
-
-    #pause-btn {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        min-width: unset;
-        border-radius: 50%;
-        padding: 0;
-        font-size: 1.5rem;
-        z-index: 5;
-        background: rgba(255,255,255,0.2);
-        color: white;
-        backdrop-filter: blur(2px);
+    .primary-btn { background: var(--primary); color: #000; }
+    .danger-btn { background: var(--danger); color: #fff; }
+    .secondary-btn { background: #4a4a4a; color: #fff; }
+    
+    .ui-btn:disabled {
+        background: #2a2a2a;
+        color: #666;
+        cursor: not-allowed;
     }
-    #pause-btn:hover { background: rgba(255,255,255,0.4); }
-
-    .pause-hidden { display: none !important; }
 
     #score-display {
         position: absolute;
-        top: 20px;
-        left: 20px;
+        top: 25px;
+        left: 50%;
+        transform: translateX(-50%);
         color: white;
-        font-family: monospace;
-        font-size: 1.5rem;
+        font-size: 0.9rem;
+        z-index: 5;
+        text-align: center;
         pointer-events: none;
-        text-shadow: 2px 2px 2px black;
+        text-shadow: 3px 3px 0px #000;
     }
 
-    canvas{
-        image-rendering: pixelated; 
-        image-rendering: -moz-crisp-edges;
-        image-rendering: crisp-edges;
+    #pause-btn {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.5rem;
+        z-index: 6;
+        padding: 0;
+        background: var(--primary);
     }
-    </style>
+
+    .pause-hidden { display: none !important; }
+    
+    .btn-row {
+        display: flex;
+        gap: 10px;
+    }
+  </style>
 </head>
 <body>
 
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
 
-        <!-- Przycisk Pauzy -->
-        <button id="pause-btn" class="ui-btn pause-hidden">⏸</button>
+        <div id="score-display">
+            <span id="score-val">0</span>M
+        </div>
 
-        <!-- MENU GŁÓWNE -->
+        <button id="pause-btn" class="ui-btn pause-hidden">II</button>
+
         <div id="main-menu" class="ui-overlay">
             <div class="menu-content">
-                <h1 class="game-title">JUMP <span class="highlight">KING</span></h1>
-                <p class="subtitle">Wspinaj się ku chwale!</p>
+                <h1 class="game-title">JUMP<br><span class="highlight">CAT</span><br>KING</h1>
+                
                 <div class="stats-box">
-                    High Score: <span id="high-score-val">0</span>
+                    BEST: <span id="high-score-val">0</span>M
                 </div>
-                <button id="start-btn" class="ui-btn primary-btn">GRAJ</button>
+
+                <button id="start-btn" class="ui-btn primary-btn">START GAME</button>
+                
+                <div class="btn-row">
+                    <button class="ui-btn secondary-btn" disabled>RANK</button>
+                    <button class="ui-btn secondary-btn" disabled>SKIN</button>
+                </div>
             </div>
         </div>
 
-        <!-- MENU PAUZY -->
         <div id="pause-menu" class="ui-overlay hidden">
             <div class="menu-content">
-                <h2>PAUZA</h2>
-                <button id="resume-btn" class="ui-btn">WZNÓW</button>
-                <button id="quit-btn" class="ui-btn danger-btn">MENU GŁÓWNE</button>
+                <h2 style="margin-bottom:40px">PAUSED</h2>
+                <button id="resume-btn" class="ui-btn primary-btn">RESUME</button>
+                <button id="quit-btn" class="ui-btn">QUIT</button>
             </div>
         </div>
 
-        <!-- GAME OVER -->
         <div id="game-over" class="ui-overlay hidden">
             <div class="menu-content">
-                <h2 class="danger-text">KONIEC GRY</h2>
-                <p>Twój wynik: <span id="final-score">0</span></p>
-                <button id="restart-btn" class="ui-btn primary-btn">SPRÓBUJ PONOWNIE</button>
+                <h2 class="highlight" style="font-size: 1.2rem">YOU FELL!</h2>
+                <div class="stats-box" style="margin-top:20px">
+                    SCORE: <span id="final-score">0</span>M
+                </div>
+                <button id="restart-btn" class="ui-btn primary-btn">RETRY</button>
+                
+                <button class="ui-btn secondary-btn" id="save-score-btn" style="font-size: 0.6rem" disabled>SUBMIT SCORE</button>
+                
                 <button id="menu-btn" class="ui-btn">MENU</button>
             </div>
         </div>
-
-        <!-- WYNIK W TRAKCIE GRY -->
-        <div id="score-display">Wysokość: <span id="score-val">0</span>m</div>
     </div>
 
   <script type="module" src="src/utils/TimeManager.js"></script>
@@ -201,6 +217,7 @@
   <script type="module" src="src/utils/vJoyShot.js"></script>
   <script type="module" src="src/entities/Platform.js"></script>
   <script type="module" src="src/entities/Player.js"></script>
+  <script type="module" src="src/entities/PowerUp.js"></script>
 
   <script>
       if ('serviceWorker' in navigator) {

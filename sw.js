@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
   './src/enums.js',
   './src/entities/Platform.js',
   './src/entities/Player.js',
+  './src/entities/PowerUp.js',
   './src/utils/screenShake.js',
   './src/utils/TimeManager.js',
   './src/utils/vJoyShot.js',
@@ -22,6 +23,7 @@ const ASSETS_TO_CACHE = [
   './images/jk.png',
   './images/assets.png',
   './images/cat.png',
+  './images/powerup_totem.png'
 ];
 
 self.addEventListener('install', (e) => {

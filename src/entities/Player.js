@@ -12,6 +12,8 @@ export class Player {
         this.isGrounded = true;
         this.isDead = false;
 
+        this.activeEffects = {};
+
         this.facingLeft = false;
         this.animator = new Animator();
         const frameSize = 32; 
@@ -61,6 +63,24 @@ export class Player {
         joyShot.resetForce();
     }
 
+    addEffect(name, duration) {
+        this.activeEffects[name] = {
+            remainingTime: duration,
+            totalTime: duration,
+            visualProgress: 1.0
+        };
+    }
+
+    hasEffect(name) {
+        return this.activeEffects[name] !== undefined;
+    }
+
+    removeEffect(name) {
+        if (this.activeEffects[name]) {
+            delete this.activeEffects[name];
+        }
+    }
+
     update(dt, canvasWidth) {
         this.vel.y += this.gravity * dt;
         this.facingLeft = this.vel.x < 0;
@@ -78,6 +98,19 @@ export class Player {
             }
         }
         this.animator.update(dt);
+
+        for (const name in this.activeEffects) {
+            const effect = this.activeEffects[name];
+            effect.remainingTime -= dt * 1000;
+
+            const targetProgress = Math.max(0, effect.remainingTime / effect.totalTime);
+            const lerpSpeed = 10; 
+            effect.visualProgress += (targetProgress - effect.visualProgress) * (lerpSpeed * dt);
+
+            if (effect.remainingTime <= 0) {
+                this.removeEffect(name);
+            }
+        }
 
         if (this.isGrounded) {
             this.vel.x *= this.currentFriction;
@@ -150,6 +183,14 @@ export class Player {
 
         const offsetX = (drawWidth - this.size) / 2;
         const offsetY = (drawHeight - this.size);
+
+        if (this.hasEffect('totem')) {
+            ctx.beginPath();
+            ctx.arc(this.pos.x + this.size / 2, this.pos.y + this.size / 2, this.size, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 215, 0, ${0.5 + Math.sin(Date.now() * 0.01) * 0.3})`;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
 
         this.animator.draw(
             ctx, 

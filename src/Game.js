@@ -131,10 +131,21 @@ export class Game {
         particles.addPreset('sparkle', {
             color: '#FFFF00',
             size: { min: 2, max: 3 },
-            speed: { min: 60, max: 120 },
+            speed: { min: 60, max: 220 },
             angle: { min: 0, max: 360 },
-            life: { min: 0.3, max: 0.6 },
+            life: { min: 0.5, max: 1.0 },
             friction: 0.9
+        });
+
+        // Item
+        particles.addPreset('sparkle_aura', {
+            color: '#ffff009f',
+            size: { min: 2, max: 3 },
+            speed: { min: 20, max: 120 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.2, max: 0.5 },
+            friction: 0.9,
+            spread: 20,
         });
     }
 
@@ -279,9 +290,20 @@ export class Game {
         if (this.state === GAME_STATE.PLAYING) {
             this.shotController.draw(ctx);
         }
+
+        if(this.camera !== undefined) {
+            this.camera.drawHUD(ctx, this.player); 
+        }
     }
 
     gameOver() {
+        if(this.player.hasEffect('totem')) {
+            this.player.vel.y = -1000;
+            this.player.removeEffect('totem');
+            this.player.doubleJumpAvailable = true;
+            return;
+        }
+
         this.state = GAME_STATE.GAMEOVER;
         ScreenShake.shake(0.5, 10);
         

@@ -17,7 +17,9 @@ let game;
 
 const gameAssets = {
     'atlas': 'images/assets.png',
-    'player': 'images/cat.png'
+    'player': 'images/cat.png',
+    'totem': 'images/powerup_totem.png',
+    'strength': 'images/powerup_strength.png',
 };
 
 function resizeCanvas() {
@@ -74,6 +76,9 @@ async function main() {
     assets.defineTile('platform_bounce', 'atlas', 5, 5);
     assets.defineTile('platform_moving', 'atlas', 9, 1);
     assets.defineTile('platform_breakable', 'atlas', 9, 5);
+
+    assets.defineSprite('powerup_totem', 'totem', 0, 0, 32, 32);
+    assets.defineSprite('powerup_strength', 'strength', 0, 0, 32, 32);
 
     resizeCanvas();
     
