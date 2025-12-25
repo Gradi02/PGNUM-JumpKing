@@ -1,21 +1,20 @@
 import { particles } from "../systems/ParticleSystem.js";  
 
-const PowerUpTypes = {
+export const PowerUpTypes = {
     TOTEM: {
         name: 'totem',
-        duration: 10000,
+        duration: 5000,
         consumeOnUse: true,
         color: '#FFD700',
         onCollect: (player) => {
             player.addEffect('totem', PowerUpTypes.TOTEM.duration);
         },
         onExpire: (player) => {
-            player.removeEffect('totem');
         }
     },
     STRENGTH: {
         name: 'strength',
-        duration: 10000,
+        duration: 6000,
         consumeOnUse: false,
         color: '#FFD700',
         onCollect: (player) => {
@@ -23,7 +22,6 @@ const PowerUpTypes = {
             player.jumpForce = 50;
         },
         onExpire: (player) => {
-            player.removeEffect('strength');
             player.jumpForce = 40;
         }
     },

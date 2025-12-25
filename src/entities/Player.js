@@ -2,6 +2,7 @@ import { PLATFORM_TYPE } from '../enums.js';
 import { Animator } from '../systems/animator.js';
 import { assets } from '../systems/AssetsManager.js';
 import { particles } from '../systems/ParticleSystem.js';
+import { PowerUpTypes } from './PowerUp.js';
 
 export class Player {
     constructor(x, y) {
@@ -77,6 +78,7 @@ export class Player {
 
     removeEffect(name) {
         if (this.activeEffects[name]) {
+            PowerUpTypes[name.toUpperCase()].onExpire(this);
             delete this.activeEffects[name];
         }
     }

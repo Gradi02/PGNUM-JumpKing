@@ -27,7 +27,7 @@ export class LevelGenerator {
         this.maxJumpDistanceX = (maxVel * timeInAir) * 0.55; 
 
         this.N = 3; 
-        this.rowSpacing = Math.floor(this.maxJumpHeight / this.N); 
+        this.rowSpacing = Math.floor(this.maxJumpHeight / this.N - 10); 
 
         this.lastY = 0;
         this.bgLastY = canvasHeight;
