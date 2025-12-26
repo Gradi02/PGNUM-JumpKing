@@ -20,7 +20,7 @@ const ASSETS_TO_CACHE = [
   './src/utils/TimeManager.js',
   './src/utils/vJoyShot.js',
   './manifest.json',
-  './images/jk.png',
+  './images/jk-v2.png',
   './images/assets.png',
   './images/cat.png',
   './images/powerup_totem.png'

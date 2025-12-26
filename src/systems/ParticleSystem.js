@@ -25,6 +25,7 @@ class Particle {
         this.fade = config.fade ?? true;
         this.shrink = config.shrink ?? false;
         this.ui = config.ui || false; 
+        this.layer = config.layer || 0;
     }
 
     update() {
@@ -69,7 +70,8 @@ class ParticleSystem {
             fade: config.fade !== false,
             shrink: config.shrink || false,
             spread: config.spread || 0,
-            ui: config.ui || false 
+            ui: config.ui || false,
+            layer: config.layer || 0
         };
     }
 
@@ -140,31 +142,33 @@ class ParticleSystem {
         }
     }
 
-    draw(ctx, camera) {
+    draw(ctx, camera, layer = 0) {
         ctx.save();
         ctx.imageSmoothingEnabled = false;
 
         for (const p of this.particles) {
-            let drawX = p.x;
-            let drawY = p.y;
+            if(p.layer === layer) {
+                let drawX = p.x;
+                let drawY = p.y;
 
-            if (p.ui) {
-                drawX += camera.x || 0;
-                drawY += camera.y || 0;
+                if (p.ui) {
+                    drawX += camera.x || 0;
+                    drawY += camera.y || 0;
+                }
+
+                const progress = Math.max(0, p.life / p.maxLife);
+                const alpha = p.fade ? progress : 1;
+                const currentSize = p.shrink ? p.size * progress : p.size;
+
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(
+                    Math.floor(drawX - currentSize / 2), 
+                    Math.floor(drawY - currentSize / 2), 
+                    Math.ceil(currentSize), 
+                    Math.ceil(currentSize)
+                );
             }
-
-            const progress = Math.max(0, p.life / p.maxLife);
-            const alpha = p.fade ? progress : 1;
-            const currentSize = p.shrink ? p.size * progress : p.size;
-
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = p.color;
-            ctx.fillRect(
-                Math.floor(drawX - currentSize / 2), 
-                Math.floor(drawY - currentSize / 2), 
-                Math.ceil(currentSize), 
-                Math.ceil(currentSize)
-            );
         }
         ctx.restore();
     }

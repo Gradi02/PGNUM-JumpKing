@@ -10,6 +10,7 @@ export const PowerUpTypes = {
             player.addEffect('totem', PowerUpTypes.TOTEM.duration);
         },
         onExpire: (player) => {
+            player.lastTotem = Date.now();
         }
     },
     STRENGTH: {

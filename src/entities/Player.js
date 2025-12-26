@@ -9,11 +9,17 @@ export class Player {
         this.pos = { x: x, y: y };
         this.vel = { x: 0, y: 0 };
         this.size = 32;
+
+        this.defultVuisualScale = 3;
+        this.strengthVisualScale = 4;
         this.visualScale = 3; 
+        
         this.isGrounded = true;
         this.isDead = false;
 
         this.activeEffects = {};
+        this.lastTotem = null;
+        this.lastTotemElapsed = 0;
 
         this.facingLeft = false;
         this.animator = new Animator();
@@ -48,7 +54,7 @@ export class Player {
                 return;
             }
 
-            if (this.isGrounded && (Math.abs(this.vel.x) < 10 && Math.abs(this.vel.y) < 10)) {
+            if (this.isGrounded && (Math.abs(this.vel.x) < 30 && Math.abs(this.vel.y) < 30)) {
                 this.isGrounded = false;
                 this.performJump(joyShot);
             }
@@ -90,6 +96,10 @@ export class Player {
         if(!this.isDead){
             if (this.isGrounded) {
                 this.animator.play('idle');
+                if(this.lastTotem !== null) {
+                    this.lastTotem = null;
+                    this.lastTotemElapsed = 0;
+                }
             } else {
                 particles.emit('trail', this.pos.x + this.size/2, this.pos.y, 1);
                 if (this.vel.y < -1) {
@@ -99,7 +109,13 @@ export class Player {
                 }
             }
         }
+
+        this.visualScale = this.hasEffect('strength') ? this.strengthVisualScale : this.defultVuisualScale;
         this.animator.update(dt);
+
+        if(this.lastTotem !== null) {
+            this.lastTotemElapsed = Date.now() - this.lastTotem;
+        }
 
         for (const name in this.activeEffects) {
             const effect = this.activeEffects[name];
@@ -112,6 +128,10 @@ export class Player {
             if (effect.remainingTime <= 0) {
                 this.removeEffect(name);
             }
+        }
+
+        if(this.hasEffect('strength') && Math.random() < 0.2) {
+            particles.emit('strength', this.pos.x + this.size/2, this.pos.y + this.size/2, 20);
         }
 
         if (this.isGrounded) {

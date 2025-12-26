@@ -85,7 +85,8 @@ export class Game {
             life: { min: 0.2, max: 0.5 },
             gravity: -100,
             spread: 10,
-            fade: true
+            fade: true,
+            layer: -1
         });
         
         // Player Trail
@@ -97,7 +98,8 @@ export class Game {
             life: { min: 0.1, max: 0.25 },
             gravity: -100,
             spread: 5,
-            fade: true
+            fade: true,
+            layer: -1
         });
 
         // Lava Fumes
@@ -125,6 +127,7 @@ export class Game {
             friction: 0.98,
             fade: true,
             shrink: true,
+            layer: -2
         });
         
         // Collect Item
@@ -134,7 +137,8 @@ export class Game {
             speed: { min: 60, max: 220 },
             angle: { min: 0, max: 360 },
             life: { min: 0.5, max: 1.0 },
-            friction: 0.9
+            friction: 0.9,
+            layer: -1
         });
 
         // Item
@@ -146,6 +150,21 @@ export class Game {
             life: { min: 0.2, max: 0.5 },
             friction: 0.9,
             spread: 20,
+            layer: -1
+        });
+
+        // Strength Effect
+        particles.addPreset('strength', {
+            color: ['#ff00dd9f', '#dd00ff9f', '#aa00ff9f'],
+            size: { min: 1, max: 2 },
+            speed: { min: 10, max: 40 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.5, max: 1 },
+            gravity: -200,
+            spread: 5,
+            fade: true,
+            shrink: true,
+            layer: -1
         });
     }
 
@@ -281,7 +300,9 @@ export class Game {
         ctx.scale(this.scale, this.scale);
         ctx.translate(0, -Math.floor(this.camera.y));
 
+        particles.draw(ctx, this.camera, -2);
         this.level.draw(ctx);
+        particles.draw(ctx, this.camera, -1);
         this.player.draw(ctx);
         particles.draw(ctx, this.camera);
 
@@ -297,7 +318,7 @@ export class Game {
     }
 
     gameOver() {
-        if(this.player.hasEffect('totem')) {
+        if(this.player.hasEffect('totem') || (this.player.lastTotem !== null && this.player.lastTotemElapsed < 400)) {
             this.player.vel.y = -1000;
             this.player.removeEffect('totem');
             this.player.doubleJumpAvailable = true;
