@@ -57,7 +57,7 @@ export class vJoyShot {
         this.current = { ...this.start };
         this.force = { x: 0, y: 0 };
         
-        TimeManager.setTimeScale(0.15);
+        //TimeManager.setTimeScale(0.15);
     }
 
     handleMove(event) {
@@ -70,7 +70,7 @@ export class vJoyShot {
         if (!this.active) return;
         event.preventDefault();
         
-        TimeManager.setTimeScale(1.0);
+        //TimeManager.setTimeScale(1.0);
         this.active = false;
         let dx = this.start.x - this.current.x;
         let dy = this.start.y - this.current.y;
@@ -95,35 +95,59 @@ export class vJoyShot {
         this.force = { x: 0, y: 0 };
     }
 
-    draw(ctx) {
-        if (!this.active) return;
+    draw(ctx, player, camera, gameScale) {
+        if (!this.active || !player.isGrounded) return;
 
         const dx = this.start.x - this.current.x;
         const dy = this.start.y - this.current.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
-        
-        if (dist > 5) {
-            const angle = Math.atan2(dy, dx);
-            const drawLen = Math.min(dist, this.maxDragDist) * 2.0;
-            
-            const endX = this.start.x + Math.cos(angle) * drawLen;
-            const endY = this.start.y + Math.sin(angle) * drawLen;
+        if (dist < 5) return;
 
-            ctx.save();
+        const scale = Math.min(dist, this.maxDragDist) / this.maxDragDist;
+        const power = scale * scale;
+
+        const angle = Math.atan2(dy, dx);
+        const magnitude = power * this.maxOutputForce;
+
+        // Prędkość (dostosuj znak przy vy jeśli skacze w odwrotną stronę)
+        const vx = Math.cos(angle) * magnitude * player.jumpForce;
+        const vy = Math.sin(angle) * magnitude * player.jumpForce;
+
+        const dots = Math.floor(4 + power * 8);
+        const maxTime = 0.15 + power * 0.35;
+        const color = power > 0.9 ? '255,200,150' : '255,255,255';
+
+        for (let i = 0; i < dots; i++) {
+            const t = Math.pow(i / dots, 1.4) * maxTime;
+
+            // 1. Obliczamy pozycję w ŚWIECIE
+            const startX = player.pos.x + player.size / 2;
+            const startY = player.pos.y + player.size;
+
+            let worldX = startX + vx * t;
+            let worldY = startY + vy * t + 0.5 * player.gravity * t * t;
+
+            if (power > 0.95) {
+                worldX += (Math.random() - 0.5) * 2;
+                worldY += (Math.random() - 0.5) * 2;
+            }
+
+            const screenX = worldX * gameScale;
+            const screenY = (worldY - camera.y) * gameScale;
+
+            const alpha = 0.6 * (1 - i / dots);
+            const radius = Math.round(4 - i * 0.25);
+
+            // Rysowanie (używając screenX i screenY)
             ctx.beginPath();
-            ctx.moveTo(this.start.x, this.start.y);
-            ctx.lineTo(endX, endY);
-            
-            ctx.lineWidth = 4 + (dist / this.maxDragDist) * 4;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.3 + (dist/this.maxDragDist)*0.7})`;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.arc(this.start.x, this.start.y, 10, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fillStyle = `rgba(${color},${alpha * 0.3})`;
+            ctx.arc(screenX, screenY, radius * 2, 0, Math.PI * 2);
             ctx.fill();
-            ctx.restore();
+
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(${color},${alpha})`;
+            ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 }

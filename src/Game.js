@@ -309,7 +309,7 @@ export class Game {
         ctx.restore();
 
         if (this.state === GAME_STATE.PLAYING) {
-            this.shotController.draw(ctx);
+            this.shotController.draw(ctx, this.player, this.camera, this.scale);
         }
 
         if(this.camera !== undefined) {

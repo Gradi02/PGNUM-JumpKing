@@ -48,13 +48,13 @@ export class Player {
         if(this.isDead) return;
 
         if (joyShot.force && (joyShot.force.x !== 0 || joyShot.force.y !== 0) && !joyShot.active) {
-            if((this.doubleJumpAvailable && !this.isGrounded)){
-                this.doubleJumpAvailable = false;
-                this.performJump(joyShot);
-                return;
-            }
+            // if((this.doubleJumpAvailable && !this.isGrounded)){
+            //     this.doubleJumpAvailable = false;
+            //     this.performJump(joyShot);
+            //     return;
+            // }
 
-            if (this.isGrounded && (Math.abs(this.vel.x) < 30 && Math.abs(this.vel.y) < 30)) {
+            if (this.isGrounded && (Math.abs(this.vel.x) < 200 && Math.abs(this.vel.y) < 200)) {
                 this.isGrounded = false;
                 this.performJump(joyShot);
             }

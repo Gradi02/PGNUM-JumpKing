@@ -123,7 +123,7 @@ export class LevelGenerator {
         this.powerups = this.powerups.filter(p => p.y < cleanupLine && !p.isCollected);
 
 
-        if (this.bgElements.length > 100 && this.bgElements[0].y > cleanupLine + 1000) {
+        if (this.bgElements.length > 100 && this.bgElements[0].y > cleanupLine + 2000) {
             this.bgElements = this.bgElements.filter(el => el.y < cleanupLine);
         }
         
@@ -134,11 +134,12 @@ export class LevelGenerator {
 
     drawParallaxBackground(ctx) {
         const playerOffsetX = (this.player.pos.x - (this.width / 2));
+        const scrollSpeedY = 0.5; 
 
         this.bgElements.forEach(el => {
             const moveX = playerOffsetX * 0.2 * el.depth;
             const drawX = el.x - moveX;
-            const drawY = el.y - (this.camera.y * el.depth);
+            const drawY = el.y - (this.camera.y * el.depth * scrollSpeedY);
 
             ctx.fillStyle = el.color;
             ctx.fillRect(
