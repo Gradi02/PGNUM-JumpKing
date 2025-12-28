@@ -3,6 +3,7 @@ import { Animator } from '../systems/animator.js';
 import { assets } from '../systems/AssetsManager.js';
 import { particles } from '../systems/ParticleSystem.js';
 import { PowerUpTypes } from './PowerUp.js';
+import { ScreenShake } from '../utils/screenShake.js';
 
 export class Player {
     constructor(x, y) {
@@ -48,11 +49,11 @@ export class Player {
         if(this.isDead) return;
 
         if (joyShot.force && (joyShot.force.x !== 0 || joyShot.force.y !== 0) && !joyShot.active) {
-            // if((this.doubleJumpAvailable && !this.isGrounded)){
-            //     this.doubleJumpAvailable = false;
-            //     this.performJump(joyShot);
-            //     return;
-            // }
+            if((this.doubleJumpAvailable && !this.isGrounded)){
+                this.doubleJumpAvailable = false;
+                this.performJump(joyShot);
+                return;
+            }
 
             if (this.isGrounded && (Math.abs(this.vel.x) < 200 && Math.abs(this.vel.y) < 200)) {
                 this.isGrounded = false;
@@ -67,6 +68,9 @@ export class Player {
 
         this.vel.x = joyShot.force.x * this.jumpForce;
         this.vel.y = joyShot.force.y * this.jumpForce;
+
+        if(joyShot.force.shake) ScreenShake.shake(0.3, 5);
+
         joyShot.resetForce();
     }
 

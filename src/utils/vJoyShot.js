@@ -1,6 +1,3 @@
-import { TimeManager } from './TimeManager.js';
-import { ScreenShake } from '../utils/screenShake.js';
-
 export class vJoyShot {
     constructor(canvas) {
         this.canvas = canvas;
@@ -56,8 +53,6 @@ export class vJoyShot {
         this.start = this._getPos(event);
         this.current = { ...this.start };
         this.force = { x: 0, y: 0 };
-        
-        //TimeManager.setTimeScale(0.15);
     }
 
     handleMove(event) {
@@ -70,7 +65,6 @@ export class vJoyShot {
         if (!this.active) return;
         event.preventDefault();
         
-        //TimeManager.setTimeScale(1.0);
         this.active = false;
         let dx = this.start.x - this.current.x;
         let dy = this.start.y - this.current.y;
@@ -85,10 +79,9 @@ export class vJoyShot {
         
         this.force = {
             x: Math.cos(angle) * finalMagnitude,
-            y: Math.sin(angle) * finalMagnitude
+            y: Math.sin(angle) * finalMagnitude,
+            shake: power >= 0.95 ? 1 : 0
         };
-
-        if (power >= 0.95) ScreenShake.shake(0.3, 5);
     }
 
     resetForce() {
@@ -96,7 +89,7 @@ export class vJoyShot {
     }
 
     draw(ctx, player, camera, gameScale) {
-        if (!this.active || !player.isGrounded) return;
+        if (!this.active || (!player.isGrounded && !player.doubleJumpAvailable)) return;
 
         const dx = this.start.x - this.current.x;
         const dy = this.start.y - this.current.y;
@@ -113,7 +106,7 @@ export class vJoyShot {
         const vx = Math.cos(angle) * magnitude * player.jumpForce;
         const vy = Math.sin(angle) * magnitude * player.jumpForce;
 
-        const dots = Math.floor(4 + power * 8);
+        const dots = Math.floor(4 + power * 10);
         const maxTime = 0.15 + power * 0.35;
         const color = power > 0.9 ? '255,200,150' : '255,255,255';
 
@@ -136,17 +129,18 @@ export class vJoyShot {
             const screenY = (worldY - camera.y) * gameScale;
 
             const alpha = 0.6 * (1 - i / dots);
-            const radius = Math.round(4 - i * 0.25);
+            const radius = Math.round(4 - i * 0.1);
+            const rv = radius * 0.5;
 
             // Rysowanie (używając screenX i screenY)
             ctx.beginPath();
             ctx.fillStyle = `rgba(${color},${alpha * 0.3})`;
-            ctx.arc(screenX, screenY, radius * 2, 0, Math.PI * 2);
+            ctx.fillRect(screenX, screenY, radius * 2, radius * 2);
             ctx.fill();
 
             ctx.beginPath();
             ctx.fillStyle = `rgba(${color},${alpha})`;
-            ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
+            ctx.fillRect(screenX + rv, screenY + rv, radius, radius);
             ctx.fill();
         }
     }
