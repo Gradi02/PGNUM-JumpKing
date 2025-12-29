@@ -23,7 +23,8 @@ const ASSETS_TO_CACHE = [
   './images/jk-v2.png',
   './images/assets.png',
   './images/cat.png',
-  './images/powerup_totem.png'
+  './images/wings.png',
+  './images/powerup_totem.png',
 ];
 
 self.addEventListener('install', (e) => {

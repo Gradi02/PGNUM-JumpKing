@@ -2,10 +2,10 @@
   "name": "Jump King PWA",
   "short_name": "JumpKing",
   "start_url": "./index.html",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "images/jk-v2.png",

@@ -89,7 +89,7 @@ export class vJoyShot {
     }
 
     draw(ctx, player, camera, gameScale) {
-        if (!this.active || (!player.isGrounded && !player.doubleJumpAvailable)) return;
+        if (!this.active || (!player.isGrounded && !player.doubleJumpAvailable && !player.hasEffect('totem'))) return;
 
         const dx = this.start.x - this.current.x;
         const dy = this.start.y - this.current.y;
@@ -102,7 +102,6 @@ export class vJoyShot {
         const angle = Math.atan2(dy, dx);
         const magnitude = power * this.maxOutputForce;
 
-        // Prędkość (dostosuj znak przy vy jeśli skacze w odwrotną stronę)
         const vx = Math.cos(angle) * magnitude * player.jumpForce;
         const vy = Math.sin(angle) * magnitude * player.jumpForce;
 
@@ -113,7 +112,6 @@ export class vJoyShot {
         for (let i = 0; i < dots; i++) {
             const t = Math.pow(i / dots, 1.4) * maxTime;
 
-            // 1. Obliczamy pozycję w ŚWIECIE
             const startX = player.pos.x + player.size / 2;
             const startY = player.pos.y + player.size;
 
@@ -132,7 +130,6 @@ export class vJoyShot {
             const radius = Math.round(4 - i * 0.1);
             const rv = radius * 0.5;
 
-            // Rysowanie (używając screenX i screenY)
             ctx.beginPath();
             ctx.fillStyle = `rgba(${color},${alpha * 0.3})`;
             ctx.fillRect(screenX, screenY, radius * 2, radius * 2);

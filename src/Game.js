@@ -318,13 +318,6 @@ export class Game {
     }
 
     gameOver() {
-        if(this.player.hasEffect('totem') || (this.player.lastTotem !== null && this.player.lastTotemElapsed < 400)) {
-            this.player.vel.y = -1000;
-            this.player.removeEffect('totem');
-            this.player.doubleJumpAvailable = true;
-            return;
-        }
-
         this.state = GAME_STATE.GAMEOVER;
         ScreenShake.shake(0.5, 10);
         

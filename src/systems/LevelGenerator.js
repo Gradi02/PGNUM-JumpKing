@@ -63,8 +63,11 @@ export class LevelGenerator {
                 x: x,
                 y: y,
                 depth: depth,
-                size: depth * 40 + 10,
-                color: `rgba(255, 255, 255, ${depth * 0.15})`
+                size: depth * 5 + 2,
+                r: Math.floor(Math.random() * 255),
+                g: Math.floor(Math.random() * 255),
+                b: Math.floor(Math.random() * 255),
+                a: depth * 0.4,
             });
         }
         this.bgLastY = targetY;
@@ -140,8 +143,19 @@ export class LevelGenerator {
             const moveX = playerOffsetX * 0.2 * el.depth;
             const drawX = el.x - moveX;
             const drawY = el.y - (this.camera.y * el.depth * scrollSpeedY);
+            const glowRadius = el.size * 3;
 
-            ctx.fillStyle = el.color;
+            const gradient = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, glowRadius);
+            const colorPrefix = `${el.r}, ${el.g}, ${el.b}`;
+            gradient.addColorStop(0, `rgba(${colorPrefix}, ${el.a})`);
+            gradient.addColorStop(1, `rgba(${colorPrefix}, 0)`);
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, glowRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = `rgba(${el.r}, ${el.g}, ${el.b}, ${el.a + 0.2})`;
             ctx.fillRect(
                 drawX - el.size / 2, 
                 drawY - el.size / 2, 

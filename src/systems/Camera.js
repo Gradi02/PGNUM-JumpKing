@@ -32,9 +32,11 @@ export class Camera {
     }
 
     draw(ctx, canvasWidth) {
+        const realHeight = ctx.canvas.height;
+
         const gradient = ctx.createLinearGradient(
-            0, this.height - this.dangerZoneHeight, 
-            0, this.height
+            0, realHeight - this.dangerZoneHeight, 
+            0, realHeight
         );
 
         gradient.addColorStop(0, 'rgba(255, 0, 0, 0)');
@@ -43,7 +45,7 @@ export class Camera {
         ctx.fillStyle = gradient;
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillRect(0, this.height - this.dangerZoneHeight, canvasWidth, this.dangerZoneHeight);
+        ctx.fillRect(0, realHeight - this.dangerZoneHeight, ctx.canvas.width, this.dangerZoneHeight);
         ctx.restore();
     }
 

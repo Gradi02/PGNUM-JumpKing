@@ -19,8 +19,6 @@ export class Player {
         this.isDead = false;
 
         this.activeEffects = {};
-        this.lastTotem = null;
-        this.lastTotemElapsed = 0;
 
         this.facingLeft = false;
         this.animator = new Animator();
@@ -42,13 +40,20 @@ export class Player {
         this.jumpForce = 40;
 
         this.wallBounciness = 0.6; 
-        this.doubleJumpAvailable = true;
+        this.doubleJumpAvailable = false;
+        this.wingsSprite = assets.getSprite('wings');
     }
 
     handleInput(joyShot) {
         if(this.isDead) return;
 
         if (joyShot.force && (joyShot.force.x !== 0 || joyShot.force.y !== 0) && !joyShot.active) {
+            if(this.hasEffect('totem') && !this.isGrounded){
+                this.removeEffect('totem');
+                this.performJump(joyShot);
+                return;
+            }
+            
             if((this.doubleJumpAvailable && !this.isGrounded)){
                 this.doubleJumpAvailable = false;
                 this.performJump(joyShot);
@@ -100,10 +105,7 @@ export class Player {
         if(!this.isDead){
             if (this.isGrounded) {
                 this.animator.play('idle');
-                if(this.lastTotem !== null) {
-                    this.lastTotem = null;
-                    this.lastTotemElapsed = 0;
-                }
+                this.doubleJumpAvailable = false;
             } else {
                 particles.emit('trail', this.pos.x + this.size/2, this.pos.y, 1);
                 if (this.vel.y < -1) {
@@ -116,10 +118,6 @@ export class Player {
 
         this.visualScale = this.hasEffect('strength') ? this.strengthVisualScale : this.defultVuisualScale;
         this.animator.update(dt);
-
-        if(this.lastTotem !== null) {
-            this.lastTotemElapsed = Date.now() - this.lastTotem;
-        }
 
         for (const name in this.activeEffects) {
             const effect = this.activeEffects[name];
@@ -140,7 +138,6 @@ export class Player {
 
         if (this.isGrounded) {
             this.vel.x *= this.currentFriction;
-            this.doubleJumpAvailable = true;
         } else {
             this.vel.x *= this.airResistance;
         }
@@ -204,20 +201,34 @@ export class Player {
 
     draw(ctx) {
         ctx.imageSmoothingEnabled = false; 
+
         const drawWidth = this.size * this.visualScale;
         const drawHeight = this.size * this.visualScale;
+        if (this.hasEffect('totem') || this.doubleJumpAvailable) {
+            const centerX = this.pos.x + this.size / 2;
+            const centerY = this.pos.y + this.size / 2;
+            const glowRadius = this.size;
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.save();
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            this.wingsSprite.draw(
+                ctx,
+                this.pos.x - this.size,
+                this.pos.y - this.size,
+                drawWidth * 0.75,
+                drawHeight * 0.75,
+            );
+        }
 
         const offsetX = (drawWidth - this.size) / 2;
         const offsetY = (drawHeight - this.size);
-
-        if (this.hasEffect('totem')) {
-            ctx.beginPath();
-            ctx.arc(this.pos.x + this.size / 2, this.pos.y + this.size / 2, this.size, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(255, 215, 0, ${0.5 + Math.sin(Date.now() * 0.01) * 0.3})`;
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
-
         this.animator.draw(
             ctx, 
             this.pos.x - offsetX,

@@ -12,19 +12,27 @@ context.mozImageSmoothingEnabled = false;
 context.webkitImageSmoothingEnabled = false;
 context.msImageSmoothingEnabled = false;
 
+let targetWidth = container.clientWidth;
+let targetHeight = container.clientHeight;
+
 let shotController;
 let game;
 
 const gameAssets = {
     'atlas': 'images/assets.png',
     'player': 'images/cat.png',
+    'wings': 'images/wings.png',
     'totem': 'images/powerup_totem.png',
     'strength': 'images/powerup_strength.png',
 };
 
-function resizeCanvas() {
+function resizeCanvas(force = false) {
     const width = container.clientWidth;
     const height = container.clientHeight;
+
+    if (!force && Math.abs(width - targetWidth) < 10 && Math.abs(height - targetHeight) < 10) {
+        return;
+    }
 
     if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
@@ -77,10 +85,11 @@ async function main() {
     assets.defineTile('platform_moving', 'atlas', 9, 1);
     assets.defineTile('platform_breakable', 'atlas', 9, 5);
 
+    assets.defineSprite('wings', 'wings', 0, 0, 510, 310);
     assets.defineSprite('powerup_totem', 'totem', 0, 0, 32, 32);
     assets.defineSprite('powerup_strength', 'strength', 0, 0, 32, 32);
 
-    resizeCanvas();
+    resizeCanvas(true);
     
     shotController = new vJoyShot(canvas);
     game = new Game(canvas, shotController);
