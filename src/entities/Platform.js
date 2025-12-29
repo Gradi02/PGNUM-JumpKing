@@ -29,7 +29,7 @@ export class Platform {
         this.isBroken = false;
 
         this.shakeTimer = 0;
-        this.shakeDuration = 0.75;
+        this.shakeDuration = 1;
         this.shakeIntensity = 5;
 
         this.setVisuals();

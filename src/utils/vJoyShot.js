@@ -96,6 +96,7 @@ export class vJoyShot {
         const dist = Math.sqrt(dx*dx + dy*dy);
         if (dist < 5) return;
 
+        ctx.save(); 
         const scale = Math.min(dist, this.maxDragDist) / this.maxDragDist;
         const power = scale * scale;
 
@@ -130,15 +131,12 @@ export class vJoyShot {
             const radius = Math.round(4 - i * 0.1);
             const rv = radius * 0.5;
 
-            ctx.beginPath();
             ctx.fillStyle = `rgba(${color},${alpha * 0.3})`;
-            ctx.fillRect(screenX, screenY, radius * 2, radius * 2);
-            ctx.fill();
+            ctx.fillRect(screenX - radius, screenY - radius, radius * 2, radius * 2);
 
-            ctx.beginPath();
             ctx.fillStyle = `rgba(${color},${alpha})`;
-            ctx.fillRect(screenX + rv, screenY + rv, radius, radius);
-            ctx.fill();
+            ctx.fillRect(screenX - radius/2, screenY - radius/2, radius, radius);
         }
+        ctx.restore();
     }
 }

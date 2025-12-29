@@ -66,12 +66,13 @@ export class Camera {
                 sprite.draw(ctx, uiX, uiY, 24, 24);
             }
 
+            ctx.beginPath();
             ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.roundRect(uiX + 35, uiY + 8, barMaxWidth, barHeight, 4);
             ctx.fill();
 
             const width = barMaxWidth * effect.visualProgress;
-            const barColor = effect.visualProgress < 0.3 ? '#ff4444' : (name === 'totem' ? '#FFD700' : '#44ff44');
+            const barColor = effect.visualProgress < 0.3 ? '#ff4444' : (effectName === 'totem' ? '#FFD700' : '#44ff44');
             
             ctx.fillStyle = barColor;
             if (width > 2) {
@@ -89,6 +90,8 @@ export class Camera {
             uiY += 35;
         }
 
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
         ctx.restore();
     }
 

@@ -77,20 +77,26 @@ export class PowerUp {
 
     draw(ctx) {
         if (this.isCollected) return;
-
+        
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
         const centerX = this.x + this.width / 2;
         const centerY = this.y + this.height / 2;
         const glowRadius = this.width;
+        ctx.globalAlpha = 1.0;
+        ctx.shadowBlur = 0;
+
         const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
         gradient.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
         gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
-        ctx.save();
+
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
+        ctx.globalCompositeOperation = 'source-over';
         if (this.sprite) {
             this.sprite.draw(ctx, this.x, this.y);
         } else {

@@ -22,6 +22,7 @@ const gameAssets = {
     'atlas': 'images/assets.png',
     'player': 'images/cat.png',
     'wings': 'images/wings.png',
+    'wings2': 'images/wings2.png',
     'totem': 'images/powerup_totem.png',
     'strength': 'images/powerup_strength.png',
 };
@@ -86,6 +87,7 @@ async function main() {
     assets.defineTile('platform_breakable', 'atlas', 9, 5);
 
     assets.defineSprite('wings', 'wings', 0, 0, 510, 310);
+    assets.defineSprite('wings2', 'wings2', 0, 0, 510, 310);
     assets.defineSprite('powerup_totem', 'totem', 0, 0, 32, 32);
     assets.defineSprite('powerup_strength', 'strength', 0, 0, 32, 32);
 

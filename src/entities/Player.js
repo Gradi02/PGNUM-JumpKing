@@ -42,6 +42,7 @@ export class Player {
         this.wallBounciness = 0.6; 
         this.doubleJumpAvailable = false;
         this.wingsSprite = assets.getSprite('wings');
+        this.wingsSprite2 = assets.getSprite('wings2');
     }
 
     handleInput(joyShot) {
@@ -201,14 +202,17 @@ export class Player {
 
     draw(ctx) {
         ctx.imageSmoothingEnabled = false; 
-
+        
         const drawWidth = this.size * this.visualScale;
         const drawHeight = this.size * this.visualScale;
-        if (this.hasEffect('totem') || this.doubleJumpAvailable) {
-            const centerX = this.pos.x + this.size / 2;
-            const centerY = this.pos.y + this.size / 2;
-            const glowRadius = this.size;
-            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+        const offsetX = (drawWidth - this.size) / 2;
+        const offsetY = (drawHeight - this.size);
+
+        const centerX = this.pos.x + this.size / 2;
+        const centerY = this.pos.y + this.size / 2;
+        const glowRadius = this.size;
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+        if (this.hasEffect('totem')) {
             gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
             gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
             ctx.save();
@@ -217,8 +221,26 @@ export class Player {
             ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
-            
+
             this.wingsSprite.draw(
+                ctx,
+                this.pos.x - this.size,
+                this.pos.y - this.size,
+                drawWidth * 0.75,
+                drawHeight * 0.75,
+            );    
+        }
+        else if(this.doubleJumpAvailable) {
+            gradient.addColorStop(0, 'rgba(255, 0, 255, 0.3)');
+            gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+            ctx.save();
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            this.wingsSprite2.draw(
                 ctx,
                 this.pos.x - this.size,
                 this.pos.y - this.size,
@@ -227,8 +249,6 @@ export class Player {
             );
         }
 
-        const offsetX = (drawWidth - this.size) / 2;
-        const offsetY = (drawHeight - this.size);
         this.animator.draw(
             ctx, 
             this.pos.x - offsetX,

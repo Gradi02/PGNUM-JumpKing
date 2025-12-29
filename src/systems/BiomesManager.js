@@ -7,9 +7,8 @@ export class BiomesManager {
         
         this.zones = [
             { limit: -5000, type: BIOME_TYPE.GRASSLANDS },
-            { limit: -11000, type: BIOME_TYPE.WINTER_LAND },
-            { limit: -25000, type: BIOME_TYPE.SKY_CITY },
-            { limit: -50000, type: BIOME_TYPE.VOLCANO },
+            { limit: -10000, type: BIOME_TYPE.WINTER_LAND },
+            { limit: -15000, type: BIOME_TYPE.VOLCANO },
             { limit: -Infinity, type: BIOME_TYPE.FUTURE }
         ];
 
@@ -26,27 +25,27 @@ export class BiomesManager {
                 movingXChance: 0.0,
                 iceChance: 0.90,
                 bouncyChance: 0.10,
-                bgColor: '#0d1b2a'
+                bgColor: '#0b1623ff'
             },
             [BIOME_TYPE.SKY_CITY]: {
                 breakableChance: 0.0,
                 movingXChance: 0.20,
                 iceChance: 0.0,
                 bouncyChance: 0.60,
-                bgColor: '#2b0f36'
+                bgColor: '#220c2bff'
             },
             [BIOME_TYPE.VOLCANO]: {
-                breakableChance: 0.50,
-                movingXChance: 0.10,
+                breakableChance: 0.60,
+                movingXChance: 0.0,
                 iceChance: 0.0,
                 bouncyChance: 0.10,
-                bgColor: '#3a0c0c'
+                bgColor: '#290909ff'
             },
             [BIOME_TYPE.FUTURE]: {
                 breakableChance: 0.20,
                 movingXChance: 0.50,
                 iceChance: 0.0,
-                bouncyChance: 0.0,
+                bouncyChance: 0.05,
                 bgColor: '#081a08'
             }
         };

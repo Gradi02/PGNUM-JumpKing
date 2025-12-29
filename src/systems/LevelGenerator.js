@@ -138,6 +138,7 @@ export class LevelGenerator {
     drawParallaxBackground(ctx) {
         const playerOffsetX = (this.player.pos.x - (this.width / 2));
         const scrollSpeedY = 0.5; 
+        ctx.save();
 
         this.bgElements.forEach(el => {
             const moveX = playerOffsetX * 0.2 * el.depth;
@@ -163,6 +164,8 @@ export class LevelGenerator {
                 el.size
             );
         });
+
+        ctx.restore();
     }
 
     draw(ctx) {
