@@ -5,6 +5,7 @@ import { GAME_STATE } from './enums.js';
 import { BiomesManager } from './systems/BiomesManager.js';
 import { particles } from './systems/ParticleSystem.js';    
 import { ScreenShake } from './utils/screenShake.js';
+import { saveHighScore, getLeaderboard, loginWithGoogle, getCurrentUser, onAuthUpdate, getUserBestScore } from './firebase.js';
 
 export class Game {
     constructor(canvas, shotController) {
@@ -39,7 +40,17 @@ export class Game {
             pauseBtn: document.getElementById('pause-btn'),
             resumeBtn: document.getElementById('resume-btn'),
             quitBtn: document.getElementById('quit-btn'),
-            menuBtn: document.getElementById('menu-btn')
+            menuBtn: document.getElementById('menu-btn'),
+
+            rankBtn: document.getElementById('rank-btn'),
+            closeRankBtn: document.getElementById('close-rank-btn'),
+            leaderboardUI: document.getElementById('leaderboard-ui'),
+            leaderboardList: document.getElementById('leaderboard-list'),
+            loginBtn: document.getElementById('login-btn'),
+            authSection: document.getElementById('auth-section'),
+            userInfo: document.getElementById('user-info'),
+            userName: document.getElementById('user-name'),
+            logoutLink: document.getElementById('logout-link'),
         };
 
         this.ui.highScore.innerText = Math.floor(this.highScore);
@@ -47,6 +58,35 @@ export class Game {
         this.initGameWorld();
         this.bindEvents();
         this.initParticles();
+
+        onAuthUpdate(async (user) => {
+            if (user) {
+                this.ui.loginBtn.classList.add('hidden');
+                this.ui.userInfo.classList.remove('hidden');
+                this.ui.userName.innerText = user.displayName.split(' ')[0];
+
+                const onlineBest = await getUserBestScore(user.uid);
+                const localBest = parseInt(localStorage.getItem('jumpking_highscore')) || 0;
+
+                if (onlineBest !== null) {
+                    if (localBest > onlineBest) {
+                        await saveHighScore(localBest);
+                        this.highScore = localBest;
+                    } else {
+                        this.highScore = onlineBest;
+                        localStorage.setItem('jumpking_highscore', this.highScore);
+                    }
+                } else if (localBest > 0) {
+                    await saveHighScore(localBest);
+                    this.highScore = localBest;
+                }
+                
+                this.ui.highScore.innerText = Math.floor(this.highScore);
+            } else {
+                this.ui.loginBtn.classList.remove('hidden');
+                this.ui.userInfo.classList.add('hidden');
+            }
+        });
     }
 
     initGameWorld() {
@@ -203,6 +243,40 @@ export class Game {
             e.preventDefault();
             this.goToMenu();
         });
+
+        this.ui.rankBtn.addEventListener(evt, async () => {
+            this.ui.leaderboardUI.classList.remove('hidden');
+            this.showLeaderboard();
+        });
+
+        this.ui.closeRankBtn.addEventListener(evt, () => {
+            this.ui.leaderboardUI.classList.add('hidden');
+        });
+
+        this.ui.loginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (this.ui.loginBtn.disabled) return;
+
+            try {
+                this.ui.loginBtn.disabled = true;
+                this.ui.loginBtn.innerText = "LOGIN...";
+                
+                const user = await loginWithGoogle();
+                
+                if (!user) {
+                    this.ui.loginBtn.disabled = false;
+                    this.ui.loginBtn.innerText = "LOGIN TO SAVE RESULT";
+                }
+            } catch (err) {
+                console.error("Critical login error", err);
+                this.ui.loginBtn.disabled = false;
+                this.ui.loginBtn.innerText = "LOGIN TO SAVE RESULT";
+            }
+        });
+
+        this.ui.logoutLink.addEventListener('click', async () => {
+            import('./firebase.js').then(m => m.logout());
+        });
     }
 
     resize() {
@@ -253,6 +327,29 @@ export class Game {
             this.ui.pauseBtn.classList.remove('pause-hidden');
             
             this.shotController.resetForce(); 
+        }
+    }
+
+    async showLeaderboard() {
+        this.ui.leaderboardList.innerHTML = "LOADING...";
+        try {
+            const scores = await getLeaderboard();
+            if (scores.length === 0) {
+                this.ui.leaderboardList.innerHTML = "NO SCORES YET";
+                return;
+            }
+            let html = "";
+            scores.forEach((entry, index) => {
+                html += `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap: 10px">
+                    <span style="min-width: 20px">${index + 1}.</span>
+                    <img src="${entry.photo || 'images/default-cat.png'}" style="width:20px; height:20px; border-radius:50%">
+                    <span style="flex-grow:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${entry.name}</span>
+                    <span style="color:var(--primary)">${entry.score}M</span>
+                </div>`;
+            });
+            this.ui.leaderboardList.innerHTML = html;
+        } catch (e) {
+            this.ui.leaderboardList.innerHTML = "FAILED TO LOAD";
         }
     }
 
@@ -325,11 +422,13 @@ export class Game {
             this.player.onDead();
         }
 
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('jumpking_highscore', this.highScore);
+            
+            if (getCurrentUser()) {
+                saveHighScore(this.score);
+            }
         }
 
         setTimeout(() => {
@@ -337,7 +436,6 @@ export class Game {
             this.ui.pauseBtn.classList.add('pause-hidden');
             this.ui.finalScore.innerText = this.score;
             this.ui.highScore.innerText = this.highScore;
-
         }, 1500); 
     }
 }

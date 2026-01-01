@@ -14,7 +14,7 @@
         --primary: #ffcc00;
         --primary-dark: #b89500;
         --danger: #ff4444;
-        --bg-overlay: rgba(20, 20, 25, 0.85);
+        --bg-overlay: rgba(20, 20, 25, 0.95);
         --pixel-shadow: 4px 4px 0px #000;
         --pixel-shadow-active: 2px 2px 0px #000;
     }
@@ -152,6 +152,32 @@
         display: flex;
         gap: 10px;
     }
+
+    .hidden { display: none !important; }
+
+    #user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 10px;
+        border: 1px dashed #555;
+        margin-bottom: 15px;
+    }
+
+    #logout-link {
+        font-size: 0.4rem;
+        color: var(--danger);
+        text-transform: uppercase;
+        cursor: pointer;
+        border-bottom: 1px solid var(--danger);
+    }
+
+    #logout-link:hover {
+        color: #fff;
+        border-color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -169,6 +195,14 @@
             <div class="menu-content">
                 <h1 class="game-title">JUMP<br><span class="highlight">CAT</span><br>KING</h1>
                 
+                <div id="auth-section" style="margin-bottom: 20px;">
+                    <button id="login-btn" class="ui-btn secondary-btn" style="font-size: 0.6rem;">LOGIN TO SAVE PROGRESS</button>
+                    <div id="user-info" class="hidden">
+                        <div>LOGGED AS: <span id="user-name" class="highlight">...</span></div>
+                        <div id="logout-link">LOGOUT</div>
+                    </div>
+                </div>
+
                 <div class="stats-box">
                     BEST: <span id="high-score-val">0</span>M
                 </div>
@@ -176,7 +210,7 @@
                 <button id="start-btn" class="ui-btn primary-btn">START GAME</button>
                 
                 <div class="btn-row">
-                    <button class="ui-btn secondary-btn" disabled>RANK</button>
+                    <button id="rank-btn" class="ui-btn secondary-btn">RANK</button>
                     <button class="ui-btn secondary-btn" disabled>SKIN</button>
                 </div>
             </div>
@@ -198,9 +232,17 @@
                 </div>
                 <button id="restart-btn" class="ui-btn primary-btn">RETRY</button>
                 
-                <button class="ui-btn secondary-btn" id="save-score-btn" style="font-size: 0.6rem" disabled>SUBMIT SCORE</button>
-                
                 <button id="menu-btn" class="ui-btn">MENU</button>
+            </div>
+        </div>
+
+        <div id="leaderboard-ui" class="ui-overlay hidden">
+            <div class="menu-content">
+                <h2 class="highlight">TOP KINGS</h2>
+                <div id="leaderboard-list" class="stats-box" style="text-align: left; font-size: 0.6rem; min-height: 150px;">
+                    Loading...
+                </div>
+                <button id="close-rank-btn" class="ui-btn">BACK</button>
             </div>
         </div>
     </div>

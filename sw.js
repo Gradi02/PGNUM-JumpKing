@@ -5,6 +5,7 @@ const ASSETS_TO_CACHE = [
   './css/styles.css',
   './src/app.js',
   './src/Game.js',
+  './src/firebase.js',
   './src/systems/Animator.js',
   './src/systems/Camera.js',
   './src/systems/LevelGenerator.js',
