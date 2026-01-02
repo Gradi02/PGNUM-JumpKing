@@ -11,6 +11,9 @@ export class Platform {
         this.type = type;
         this.friction = 0.9;
         this.sprite = null;
+        this.decorationSprite = null;
+        this.decoOffsetX = 0;
+        this.particlesEmitter = null;
 
         if (this.type === undefined || this.type === null) {
             console.warn("Uwaga: Typ platformy to undefined! Ustawiam 'default'. Sprawdź importy w Platform.js");
@@ -38,6 +41,19 @@ export class Platform {
         this.createOffscreenCache();
     }
 
+    setDeco(chance, decos = [])
+    {
+        if(decos === null || decos.length === 0 || chance === 0) return;
+
+        if(Math.random() < chance)
+        {
+            this.decorationSprite = assets.getSprite(decos[Math.floor(Math.random() * decos.length)]);
+
+            const maxOffset = Math.max(0, this.width - (this.decorationSprite.sw || 20));
+            this.decoOffsetX = Math.random() * maxOffset;
+        }
+    }
+
     setVisuals() {
         this.hasGrass = true; 
 
@@ -47,6 +63,7 @@ export class Platform {
                 this.colorTop = '#44aa44';
                 this.friction = 0.8;
                 this.sprite = assets.getSprite('platform_grass');
+                this.setDeco(0.4, ['deco_1', 'deco_2', 'deco_5']);
                 break;
 
             case PLATFORM_TYPE.FLOOR:
@@ -90,6 +107,7 @@ export class Platform {
                 this.friction = 0.7;
                 this.sprite = assets.getSprite('platform_breakable');
                 this.height = 20;
+                this.setDeco(0.3, ['deco_6', 'deco_7', 'deco_8']);
                 break;
 
             default:
@@ -229,6 +247,14 @@ export class Platform {
 
         ctx.save();
         ctx.globalAlpha = opacity;
+
+        if (this.decorationSprite) {
+            this.decorationSprite.draw(
+                ctx, 
+                this.x + this.decoOffsetX + offsetX, 
+                this.y - this.decorationSprite.sh + offsetY
+            );
+        }
 
         if (this.sprite !== null) {
             if (!this.offscreenCanvas) {

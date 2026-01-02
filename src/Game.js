@@ -91,7 +91,7 @@ export class Game {
 
     initGameWorld() {
         this.camera = new Camera(this.virtualHeight, this.virtualWidth);
-        this.player = new Player(this.virtualWidth / 2, -100);
+        this.player = new Player(this.virtualWidth / 2, -50);
         this.level = new LevelGenerator(this.virtualWidth, this.virtualHeight, this.player, this.biomesManager, this.camera);
 
         this.camera.reset(this.player.pos.y);

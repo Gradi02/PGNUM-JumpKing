@@ -86,6 +86,15 @@ async function main() {
     assets.defineTile('platform_moving', 'atlas', 9, 1);
     assets.defineTile('platform_breakable', 'atlas', 9, 5);
 
+    assets.defineTile('deco_1', 'atlas', 0, 0);
+    assets.defineTile('deco_2', 'atlas', 2, 0);
+    assets.defineTile('deco_3', 'atlas', 4, 0);
+    assets.defineTile('deco_4', 'atlas', 5, 0);
+    assets.defineTile('deco_5', 'atlas', 7, 0);
+    assets.defineTile('deco_6', 'atlas', 0, 4);
+    assets.defineTile('deco_7', 'atlas', 8, 4);
+    assets.defineTile('deco_8', 'atlas', 10, 4);
+
     assets.defineSprite('wings', 'wings', 0, 0, 510, 310);
     assets.defineSprite('wings2', 'wings2', 0, 0, 510, 310);
     assets.defineSprite('powerup_totem', 'totem', 0, 0, 32, 32);

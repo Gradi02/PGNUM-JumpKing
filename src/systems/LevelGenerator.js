@@ -19,7 +19,9 @@ export class LevelGenerator {
         const gravity = 1500;
         const jumpForceMultiplier = 40;
         const maxInputForce = 26;
-        this.powerupSpawnChance = 0.1;
+        this.powerupBaseChance = 0.01;
+        this.powerupCurrentChance = this.powerupBaseChance;
+        this.powerupIncrement = 0.02;
 
         const maxVel = maxInputForce * jumpForceMultiplier;
         this.maxJumpHeight = (maxVel * maxVel) / (2 * gravity);
@@ -55,22 +57,39 @@ export class LevelGenerator {
         const density = Math.floor(distance / 40);
 
         for(let i = 0; i < density; i++) {
-            const depth = Math.floor(Math.random() * 4) / 5 + 0.1; 
             const x = Math.random() * (endX - startX) + startX;
             const y = Math.random() * (targetY - this.bgLastY) + this.bgLastY;
 
-            this.bgElements.push({
-                x: x,
-                y: y,
-                depth: depth,
-                size: depth * 5 + 2,
-                r: Math.floor(Math.random() * 255),
-                g: Math.floor(Math.random() * 255),
-                b: Math.floor(Math.random() * 255),
-                a: depth * 0.4,
-            });
+            const rand = Math.random();
+            let element = { x, y };
+            if (rand < 0.05) {
+                element.type = 'NEBULA';
+                element.depth = 0.05 + Math.random() * 0.05;
+                element.size = 200 + Math.random() * 400;
+                element.color = this.getRandomCosmicColor(0.07);
+            } 
+            else {
+                element.type = 'STAR';
+                element.depth = 0.1 + Math.random() * 0.2;
+                element.size = element.depth * 5 + 2;
+                element.r = Math.floor(Math.random() * 255);
+                element.g = Math.floor(Math.random() * 255);
+                element.b = Math.floor(Math.random() * 255);
+                element.a = element.depth * 0.4;
+            }
+            this.bgElements.push(element);
         }
         this.bgLastY = targetY;
+    }
+
+    getRandomCosmicColor(alpha) {
+        const colors = [
+            `rgba(100, 50, 200, ${alpha})`,
+            `rgba(50, 150, 250, ${alpha})`,
+            `rgba(250, 50, 150, ${alpha})`,
+            `rgba(50, 250, 200, ${alpha})`
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
     }
 
     createNextRow() {
@@ -79,7 +98,7 @@ export class LevelGenerator {
         const prevCenter = prevPlatform ? (prevPlatform.x + prevPlatform.width / 2) : (this.width / 2);
         const heightFactor = Math.min(1, Math.abs(this.lastY) / 10000);
 
-        const width = 90 + Math.random() * 60 - (30 * heightFactor);
+        const width = 110 + Math.random() * 20 - (30 * heightFactor);
             
         let minX = Math.max(0, prevCenter - this.maxJumpDistanceX);
         let maxX = Math.min(this.width - width, prevCenter + this.maxJumpDistanceX);
@@ -100,7 +119,9 @@ export class LevelGenerator {
     }
     
     trySpawnPowerUp(x, y, platformWidth) {
-        if (Math.random() < this.powerupSpawnChance) {
+        const roll = Math.random();
+
+        if (roll < this.powerupCurrentChance) {
             const types = ['TOTEM', 'STRENGTH']; 
             const randomType = types[Math.floor(Math.random() * types.length)];
             
@@ -109,6 +130,11 @@ export class LevelGenerator {
 
             const sprite = assets.getSprite(`powerup_${randomType.toLowerCase()}`);
             this.powerups.push(new PowerUp(pX, pY, randomType, sprite));
+
+            this.powerupCurrentChance = this.powerupBaseChance;
+        } else {
+            this.powerupCurrentChance += this.powerupIncrement;
+            if (this.powerupCurrentChance > 1.0) this.powerupCurrentChance = 1.0;
         }
     }
 
@@ -144,25 +170,41 @@ export class LevelGenerator {
             const moveX = playerOffsetX * 0.2 * el.depth;
             const drawX = el.x - moveX;
             const drawY = el.y - (this.camera.y * el.depth * scrollSpeedY);
-            const glowRadius = el.size * 3;
+            
+            if(el.type === "STAR") {
+                const glowRadius = el.size * 3;
 
-            const gradient = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, glowRadius);
-            const colorPrefix = `${el.r}, ${el.g}, ${el.b}`;
-            gradient.addColorStop(0, `rgba(${colorPrefix}, ${el.a})`);
-            gradient.addColorStop(1, `rgba(${colorPrefix}, 0)`);
+                const gradient = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, glowRadius);
+                const colorPrefix = `${el.r}, ${el.g}, ${el.b}`;
+                gradient.addColorStop(0, `rgba(${colorPrefix}, ${el.a})`);
+                gradient.addColorStop(1, `rgba(${colorPrefix}, 0)`);
 
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(drawX, drawY, glowRadius, 0, Math.PI * 2);
-            ctx.fill();
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, glowRadius, 0, Math.PI * 2);
+                ctx.fill();
 
-            ctx.fillStyle = `rgba(${el.r}, ${el.g}, ${el.b}, ${el.a + 0.2})`;
-            ctx.fillRect(
-                drawX - el.size / 2, 
-                drawY - el.size / 2, 
-                el.size, 
-                el.size
-            );
+                ctx.fillStyle = `rgba(${el.r}, ${el.g}, ${el.b}, ${el.a + 0.2})`;
+                ctx.fillRect(
+                    drawX - el.size / 2, 
+                    drawY - el.size / 2, 
+                    el.size, 
+                    el.size
+                );
+            }
+            else if (el.type === "NEBULA") {
+                const grad = ctx.createRadialGradient(drawX, drawY, 0, drawX, drawY, el.size);
+                grad.addColorStop(0, el.color);
+                grad.addColorStop(1, 'transparent');
+
+                ctx.save();
+                ctx.fillStyle = grad;
+                ctx.globalCompositeOperation = 'screen';
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, el.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
         });
 
         ctx.restore();
