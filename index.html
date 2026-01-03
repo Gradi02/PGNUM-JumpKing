@@ -185,6 +185,36 @@
         color: #fff;
         border-color: #fff;
     }
+
+    .update-banner {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #111;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        z-index: 999;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .update-banner button {
+        background: var(--primary);
+        border: none;
+        color: #000;
+        padding: 6px 10px;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .update-banner.hidden {
+        display: none;
+    }
   </style>
 </head>
 <body>
@@ -200,6 +230,11 @@
 
         <div id="main-menu" class="ui-overlay">
             <div class="menu-content">
+                <div id="update-banner" class="update-banner hidden">
+                    <span>New version available!</span>
+                    <button id="update-btn">UPDATE</button>
+                </div>
+
                 <h1 class="game-title">JUMP<br><span class="highlight">CAT</span><br>KING</h1>
                 
                 <div id="auth-section" style="margin-bottom: 20px;">

@@ -51,6 +51,9 @@ export class Game {
             userInfo: document.getElementById('user-info'),
             userName: document.getElementById('user-name'),
             logoutLink: document.getElementById('logout-link'),
+
+            updateBanner: document.getElementById('update-banner'),
+            updateBtn: document.getElementById('update-btn'),
         };
 
         this.ui.highScore.innerText = Math.floor(this.highScore);
@@ -97,6 +100,12 @@ export class Game {
                 this.ui.highScore.innerText = '0';
             }
         });
+    }
+
+    showUpdateBanner() {
+        if (this.state === GAME_STATE.MENU) {
+            this.ui.updateBanner.classList.remove('hidden');
+        }
     }
 
     initGameWorld() {
@@ -352,6 +361,10 @@ export class Game {
                 this.ui.logoutLink.innerText = "Logout (Error)";
                 setTimeout(() => { this.ui.logoutLink.innerText = "Logout"; }, 2000);
             }
+        });
+
+        this.ui.updateBtn?.addEventListener('click', () => {
+            location.reload();
         });
     }
 

@@ -29,6 +29,10 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', () => {
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+  );
   self.isFirstInstall = true;
 });
 

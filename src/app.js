@@ -122,10 +122,8 @@ window.addEventListener('orientationchange', () => {
 
 navigator.serviceWorker.addEventListener('message', (e) => {
   if (e.data?.type === 'APP_UPDATED') {
-    if (e.data.firstInstall) {
-      console.log('Pierwsza instalacja');
-    } else {
-      console.log('Update aplikacji');
+    if (game) {
+      game.showUpdateBanner();
     }
   }
 });
