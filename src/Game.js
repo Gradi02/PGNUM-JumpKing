@@ -503,7 +503,9 @@ export class Game {
         }
     }
 
-    gameOver() {
+    async gameOver() {
+        if (this.state === GAME_STATE.GAMEOVER) return;
+
         this.state = GAME_STATE.GAMEOVER;
         ScreenShake.shake(0.5, 10);
         
@@ -512,11 +514,22 @@ export class Game {
         }
 
         if (this.score > this.highScore) {
+            console.log(`New High Score detected: ${this.score} (Old: ${this.highScore})`);
+            
             this.highScore = this.score;
             localStorage.setItem('jumpking_highscore', this.highScore);
             
-            if (getCurrentUser()) {
-                saveHighScore(this.score);
+            const user = getCurrentUser();
+            if (user) {
+                try {
+                    console.log("Saving score to database...");
+                    await saveHighScore(this.score);
+                    console.log("Score saved successfully!");
+                } catch (error) {
+                    console.error("FAILED to save score to DB:", error);
+                }
+            } else {
+                console.warn("User not logged in - score saved only locally.");
             }
         }
 
