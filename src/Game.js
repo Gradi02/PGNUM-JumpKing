@@ -5,7 +5,7 @@ import { GAME_STATE } from './enums.js';
 import { BiomesManager } from './systems/BiomesManager.js';
 import { particles } from './systems/ParticleSystem.js';    
 import { ScreenShake } from './utils/screenShake.js';
-import { saveHighScore, getLeaderboard, loginWithGoogle, getCurrentUser, onAuthUpdate, getUserBestScore } from './firebase.js';
+import { saveHighScore, getLeaderboard, loginWithGoogle, getCurrentUser, onAuthUpdate, getUserBestScore, logout } from './firebase.js';
 
 export class Game {
     constructor(canvas, shotController) {
@@ -23,7 +23,7 @@ export class Game {
         this.camera = null;
         
         this.score = 0;
-        this.highScore = localStorage.getItem('jumpking_highscore') || 0;
+        this.highScore = parseInt(localStorage.getItem('jumpking_highscore')) || 0;
         this.state = GAME_STATE.MENU;
 
         this.ui = {
@@ -63,7 +63,7 @@ export class Game {
             if (user) {
                 this.ui.loginBtn.classList.add('hidden');
                 this.ui.userInfo.classList.remove('hidden');
-                this.ui.userName.innerText = user.displayName.split(' ')[0];
+                this.ui.userName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'User';
 
                 const onlineBest = await getUserBestScore(user.uid);
                 const localBest = parseInt(localStorage.getItem('jumpking_highscore')) || 0;
@@ -82,9 +82,19 @@ export class Game {
                 }
                 
                 this.ui.highScore.innerText = Math.floor(this.highScore);
+
             } else {
                 this.ui.loginBtn.classList.remove('hidden');
                 this.ui.userInfo.classList.add('hidden');
+                
+                this.ui.loginBtn.disabled = false;
+                this.ui.loginBtn.innerText = "LOGIN TO SAVE RESULT";
+                
+                this.ui.logoutLink.innerText = "Logout";
+
+                localStorage.removeItem('jumpking_highscore');
+                this.highScore = 0;
+                this.ui.highScore.innerText = '0';
             }
         });
     }
@@ -257,10 +267,10 @@ export class Game {
             e.preventDefault();
             if (this.ui.loginBtn.disabled) return;
 
+            this.ui.loginBtn.disabled = true;
+            this.ui.loginBtn.innerText = "LOGIN...";
+
             try {
-                this.ui.loginBtn.disabled = true;
-                this.ui.loginBtn.innerText = "LOGIN...";
-                
                 const user = await loginWithGoogle();
                 
                 if (!user) {
@@ -270,12 +280,21 @@ export class Game {
             } catch (err) {
                 console.error("Critical login error", err);
                 this.ui.loginBtn.disabled = false;
-                this.ui.loginBtn.innerText = "LOGIN TO SAVE RESULT";
+                this.ui.loginBtn.innerText = "LOGIN ERROR";
             }
         });
 
-        this.ui.logoutLink.addEventListener('click', async () => {
-            import('./firebase.js').then(m => m.logout());
+        this.ui.logoutLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            this.ui.logoutLink.innerText = "Logging out...";
+            
+            const success = await logout();
+            
+            if (!success) {
+                this.ui.logoutLink.innerText = "Logout (Error)";
+                setTimeout(() => { this.ui.logoutLink.innerText = "Logout"; }, 2000);
+            }
         });
     }
 

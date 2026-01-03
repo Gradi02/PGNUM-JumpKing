@@ -22,13 +22,23 @@ export async function loginWithGoogle() {
         const result = await signInWithPopup(auth, provider);
         return result.user;
     } catch (error) {
-        console.error("Login failed:", error + error.message);
+        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+            console.warn("Login cancelled by user");
+            return null;
+        }
+        console.error("Login failed:", error.message);
         return null;
     }
 }
 
-export function logout() {
-    return signOut(auth);
+export async function logout() {
+    try {
+        await signOut(auth);
+        return true;
+    } catch (error) {
+        console.error("Logout failed:", error);
+        return false;
+    }
 }
 
 export function getCurrentUser() {
@@ -59,9 +69,14 @@ export async function saveHighScore(score) {
 }
 
 export async function getLeaderboard() {
-    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data());
+    try {
+        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => doc.data());
+    } catch (e) {
+        console.error("Fetch leaderboard error:", e);
+        return [];
+    }
 }
 
 export async function getUserBestScore(uid) {
