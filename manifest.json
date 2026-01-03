@@ -1,15 +1,15 @@
 {
   "name": "Jump King PWA",
   "short_name": "JumpKing",
-  "start_url": "./index.html",
+  "start_url": "/index.html?source=pwa",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "images/jk-v2.png",
-      "sizes": "512x512",
+      "src": "images/jk-v3.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]

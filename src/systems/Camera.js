@@ -72,7 +72,7 @@ export class Camera {
             ctx.fill();
 
             const width = barMaxWidth * effect.visualProgress;
-            const barColor = effect.visualProgress < 0.3 ? '#ff4444' : (effectName === 'totem' ? '#FFD700' : '#44ff44');
+            const barColor = effect.visualProgress < 0.3 ? '#ff4444' : '#44ff44';
             
             ctx.fillStyle = barColor;
             if (width > 2) {

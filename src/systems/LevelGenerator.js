@@ -122,7 +122,7 @@ export class LevelGenerator {
         const roll = Math.random();
 
         if (roll < this.powerupCurrentChance) {
-            const types = ['TOTEM', 'STRENGTH']; 
+            const types = ['JETPACK', 'STRENGTH']; 
             const randomType = types[Math.floor(Math.random() * types.length)];
             
             const pX = x + (platformWidth / 2) - 16;

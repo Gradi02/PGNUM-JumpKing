@@ -22,8 +22,7 @@ const gameAssets = {
     'atlas': 'images/assets.png',
     'player': 'images/cat.png',
     'wings': 'images/wings.png',
-    'wings2': 'images/wings2.png',
-    'totem': 'images/powerup_totem.png',
+    'jetpack': 'images/powerup_jetpack.png',
     'strength': 'images/powerup_strength.png',
 };
 
@@ -96,8 +95,7 @@ async function main() {
     assets.defineTile('deco_8', 'atlas', 10, 4);
 
     assets.defineSprite('wings', 'wings', 0, 0, 510, 310);
-    assets.defineSprite('wings2', 'wings2', 0, 0, 510, 310);
-    assets.defineSprite('powerup_totem', 'totem', 0, 0, 32, 32);
+    assets.defineSprite('powerup_jetpack', 'jetpack', 0, 0, 32, 32);
     assets.defineSprite('powerup_strength', 'strength', 0, 0, 32, 32);
 
     resizeCanvas(true);
@@ -120,4 +118,14 @@ window.addEventListener('resize', () => {
 });
 window.addEventListener('orientationchange', () => {
     setTimeout(resizeCanvas, 200);
+});
+
+navigator.serviceWorker.addEventListener('message', (e) => {
+  if (e.data?.type === 'APP_UPDATED') {
+    if (e.data.firstInstall) {
+      console.log('Pierwsza instalacja');
+    } else {
+      console.log('Update aplikacji');
+    }
+  }
 });

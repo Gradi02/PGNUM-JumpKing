@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gra-v1';
+const CACHE_NAME = 'gra-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -20,26 +20,59 @@ const ASSETS_TO_CACHE = [
   './src/utils/screenShake.js',
   './src/utils/TimeManager.js',
   './src/utils/vJoyShot.js',
-  './manifest.json',
-  './images/jk-v2.png',
+  './images/jk-v3.png',
   './images/assets.png',
   './images/cat.png',
+  './images/default-cat.png',
   './images/wings.png',
-  './images/powerup_totem.png',
+  './images/powerup_jetpack.png',
 ];
 
-self.addEventListener('install', (e) => {
+self.addEventListener('install', () => {
+  self.isFirstInstall = true;
+});
+
+self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => key !== CACHE_NAME && caches.delete(key))
+      )
+    )
   );
+
+  self.clients.matchAll({ type: 'window' }).then((clients) => {
+    clients.forEach((client) =>
+      client.postMessage({
+        type: 'APP_UPDATED',
+        firstInstall: !!self.isFirstInstall,
+      })
+    );
+  });
+
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+    fetch(e.request)
+      .then((res) => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(e.request, clone);
+        });
+        return res;
+      })
+      .catch(() => caches.match(e.request))
+  );
+});
+
+self.addEventListener('push', (e) => {
+  const data = e.data?.json() || {};
+  e.waitUntil(
+    self.registration.showNotification(data.title || 'Nowość!', {
+      body: data.body,
+      icon: '/images/jk-v4.png',
     })
   );
 });

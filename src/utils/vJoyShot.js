@@ -89,7 +89,7 @@ export class vJoyShot {
     }
 
     draw(ctx, player, camera, gameScale) {
-        if (!this.active || (!player.isGrounded && !player.doubleJumpAvailable && !player.hasEffect('totem'))) return;
+        if (!this.active || (!player.isGrounded && !player.doubleJumpAvailable)) return;
 
         const dx = this.start.x - this.current.x;
         const dy = this.start.y - this.current.y;

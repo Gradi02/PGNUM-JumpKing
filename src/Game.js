@@ -216,6 +216,63 @@ export class Game {
             shrink: true,
             layer: -1
         });
+
+        // Bounce Platform
+        particles.addPreset('bounce_platform', {
+            color: ['#ff4de7b6', '#b902c0b0', '#c63ef4d0'], 
+            size: { min: 1, max: 2 },
+            speed: { min: 10, max: 40 },
+            angle: { min: 260, max: 280 },
+            life: { min: 1.0, max: 2.0 },
+            gravity: -50,
+            friction: 0.98,
+            fade: true,
+            shrink: true,
+            spread: 2,
+            layer: -2,
+        });
+
+        // Ice Platform
+        particles.addPreset('ice_platform', {
+            color: ['#4da3ffb6', '#02b7c0b0', '#3ed9f4d0', '#1de8f3d6', '#83f9edd0'], 
+            size: { min: 0.5, max: 1 },
+            speed: { min: 10, max: 40 },
+            angle: { min: 0, max: 360 },
+            life: { min: 1.0, max: 2.0 },
+            gravity: 0,
+            friction: 0.98,
+            fade: true,
+            shrink: true,
+            spread: 2,
+            layer: -2,
+        });
+
+        particles.addPreset('jetpack_fire', {
+            color: ['#fff700', '#ff8c00', '#ff4d4d'], 
+            size: { min: 3, max: 7 },
+            speed: { min: 150, max: 300 },
+            angle: { min: 60, max: 120 },
+            life: { min: 0.1, max: 0.35 },
+            gravity: 100,
+            friction: 0.9,
+            spread: 4,
+            fade: true,
+            shrink: true,
+            layer: -1
+        });
+
+        particles.addPreset('jetpack_smoke', {
+            color: ['#88888880', '#bbbbbb60', '#eeeeee40'],
+            size: { min: 5, max: 9 },
+            speed: { min: 50, max: 100 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.5, max: 1 },
+            gravity: 20,
+            friction: 0.96,
+            fade: true,
+            layer: -2,
+            spread: 5,
+        });
     }
 
     bindEvents() {

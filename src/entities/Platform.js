@@ -80,6 +80,7 @@ export class Platform {
                 this.hasGrass = false;
                 this.friction = 0.98;
                 this.sprite = assets.getSprite('platform_ice');
+                this.particlesEmitter = 'ice_platform';
                 break;
                 
             case PLATFORM_TYPE.BOUNCY:
@@ -89,6 +90,7 @@ export class Platform {
                 this.friction = 0;
                 this.sprite = assets.getSprite('platform_bounce');
                 this.height = 20;
+                this.particlesEmitter = 'bounce_platform';
                 break;
 
             case PLATFORM_TYPE.MOVING_X:
@@ -152,6 +154,10 @@ export class Platform {
                     particles.emitRect('breaking', this.x, this.y, this.width, this.height, 20);
                 }
             }
+        }
+
+        if(this.particlesEmitter !== null && Math.random() < 0.1) {
+            particles.emitLine(this.particlesEmitter, this.x, this.y, this.x + this.width, this.y, 2);
         }
     }
 

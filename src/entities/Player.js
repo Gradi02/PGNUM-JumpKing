@@ -17,6 +17,7 @@ export class Player {
         
         this.isGrounded = true;
         this.isDead = false;
+        this.activeInputs = true;
 
         this.activeEffects = {};
 
@@ -25,7 +26,7 @@ export class Player {
         const frameSize = 32; 
         const idleFrames = assets.getAnimationStrip('player', 0, 0, frameSize, frameSize, 4);
         const riseFrames = assets.getAnimationStrip('player', 0, 8 * frameSize, frameSize, frameSize, 3);
-        const fallFrames = assets.getAnimationStrip('player', 3 * frameSize, 9 * frameSize, frameSize, frameSize, 4);
+        const fallFrames = assets.getAnimationStrip('player', 3 * frameSize, 8 * frameSize, frameSize, frameSize, 2);
         const deadFrames = assets.getAnimationStrip('player', 0, 6 * frameSize, frameSize, frameSize, 4);
         this.animator.add('idle', idleFrames, 4, true);
         this.animator.add('rise', riseFrames, 10, false);
@@ -42,19 +43,12 @@ export class Player {
         this.wallBounciness = 0.6; 
         this.doubleJumpAvailable = false;
         this.wingsSprite = assets.getSprite('wings');
-        this.wingsSprite2 = assets.getSprite('wings2');
     }
 
     handleInput(joyShot) {
-        if(this.isDead) return;
+        if(this.isDead || !this.activeInputs) return;
 
         if (joyShot.force && (joyShot.force.x !== 0 || joyShot.force.y !== 0) && !joyShot.active) {
-            if(this.hasEffect('totem') && !this.isGrounded){
-                this.removeEffect('totem');
-                this.performJump(joyShot);
-                return;
-            }
-            
             if((this.doubleJumpAvailable && !this.isGrounded)){
                 this.doubleJumpAvailable = false;
                 this.performJump(joyShot);
@@ -131,6 +125,14 @@ export class Player {
             if (effect.remainingTime <= 0) {
                 this.removeEffect(name);
             }
+        }
+
+        if(this.hasEffect('jetpack')) {
+            this.vel.y = -1000;
+            this.vel.x = 0;
+
+            particles.emit('jetpack_fire', this.pos.x + this.size/2, this.pos.y + this.size/2, 5);
+            particles.emit('jetpack_smoke', this.pos.x + this.size/2, this.pos.y + this.size/2, 10);
         }
 
         if(this.hasEffect('strength') && Math.random() < 0.2) {
@@ -212,25 +214,8 @@ export class Player {
         const centerY = this.pos.y + this.size / 2;
         const glowRadius = this.size;
         const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
-        if (this.hasEffect('totem')) {
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            ctx.save();
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
 
-            this.wingsSprite.draw(
-                ctx,
-                this.pos.x - this.size,
-                this.pos.y - this.size,
-                drawWidth * 0.75,
-                drawHeight * 0.75,
-            );    
-        }
-        else if(this.doubleJumpAvailable) {
+        if(this.doubleJumpAvailable) {
             gradient.addColorStop(0, 'rgba(255, 0, 255, 0.3)');
             gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
             ctx.save();
@@ -240,7 +225,7 @@ export class Player {
             ctx.fill();
             ctx.restore();
 
-            this.wingsSprite2.draw(
+            this.wingsSprite.draw(
                 ctx,
                 this.pos.x - this.size,
                 this.pos.y - this.size,

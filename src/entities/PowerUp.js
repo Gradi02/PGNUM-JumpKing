@@ -1,15 +1,20 @@
 import { particles } from "../systems/ParticleSystem.js";  
+import { ScreenShake } from "../utils/screenShake.js";
 
 export const PowerUpTypes = {
-    TOTEM: {
-        name: 'totem',
-        duration: 5000,
-        consumeOnUse: true,
+    JETPACK: {
+        name: 'jetpack',
+        duration: 1000,
+        consumeOnUse: false,
         color: '#FFD700',
         onCollect: (player) => {
-            player.addEffect('totem', PowerUpTypes.TOTEM.duration);
+            player.addEffect('jetpack', PowerUpTypes.JETPACK.duration);
+            player.activeInputs = false;
+            ScreenShake.shake(PowerUpTypes.JETPACK.duration/1000, 5);
         },
         onExpire: (player) => {
+            player.activeInputs = true;
+            player.doubleJumpAvailable = true;
         }
     },
     STRENGTH: {
@@ -25,6 +30,7 @@ export const PowerUpTypes = {
             player.jumpForce = 40;
         }
     },
+    
 };
 
 
