@@ -5,7 +5,17 @@ import { GAME_STATE } from './enums.js';
 import { BiomesManager } from './systems/BiomesManager.js';
 import { particles } from './systems/ParticleSystem.js';    
 import { ScreenShake } from './utils/screenShake.js';
-import { saveHighScore, getLeaderboard, loginWithGoogle, getCurrentUser, onAuthUpdate, getUserBestScore, logout } from './firebase.js';
+import {
+  saveHighScore,
+  getLeaderboard,
+  loginWithGoogle,
+  getCurrentUser,
+  onAuthUpdate,
+  getUserBestScore,
+  logout,
+  saveFish,
+  getUserFish
+} from './firebase.js';
 
 export class Game {
     constructor(canvas, shotController) {
@@ -25,6 +35,8 @@ export class Game {
         this.score = 0;
         this.highScore = parseInt(localStorage.getItem('jumpking_highscore')) || 0;
         this.state = GAME_STATE.MENU;
+        this.totalFish = parseInt(localStorage.getItem('fish_total')) || 0;
+        this.runFish = 0;
 
         this.ui = {
             menu: document.getElementById('main-menu'),
@@ -54,6 +66,10 @@ export class Game {
 
             updateBanner: document.getElementById('update-banner'),
             updateBtn: document.getElementById('update-btn'),
+
+            fishHud: document.getElementById('fish-hud'),   
+            fishMenu: document.getElementById('fish-menu'),     
+            fishGameOver: document.getElementById('fish-gameover'),
         };
 
         this.ui.highScore.innerText = Math.floor(this.highScore);
@@ -86,6 +102,23 @@ export class Game {
                 
                 this.ui.highScore.innerText = Math.floor(this.highScore);
 
+                const onlineFish = await getUserFish(user.uid);
+                const localFish = parseInt(localStorage.getItem('fish_total')) || 0;
+
+                if (onlineFish !== null) {
+                    if (localFish > onlineFish) {
+                        await saveFish(localFish);
+                        this.totalFish = localFish;
+                    } else {
+                        this.totalFish = onlineFish;
+                        localStorage.setItem('fish_total', this.totalFish);
+                    }
+                } else if (localFish > 0) {
+                    await saveFish(localFish);
+                    this.totalFish = localFish;
+                }
+
+                this.updateFishUI();
             } else {
                 this.ui.loginBtn.classList.remove('hidden');
                 this.ui.userInfo.classList.add('hidden');
@@ -98,8 +131,29 @@ export class Game {
                 localStorage.removeItem('jumpking_highscore');
                 this.highScore = 0;
                 this.ui.highScore.innerText = '0';
+
+                localStorage.removeItem('fish_total');
+                this.totalFish = 0;
+                this.updateFishUI();
             }
         });
+    }
+
+    updateFishUI() {
+        if (this.ui.fishHud) {
+            this.ui.fishHud.innerText = this.runFish;
+        }
+        if (this.ui.fishMenu) {
+            this.ui.fishMenu.innerText = this.totalFish;
+        }
+        if (this.ui.fishGameOver) {
+            this.ui.fishGameOver.innerText = `+${this.runFish}`;
+        }
+    }
+
+    saveFish() {
+        this.totalFish += this.runFish;
+        localStorage.setItem('fish_total', this.totalFish);
     }
 
     showUpdateBanner() {
@@ -110,7 +164,7 @@ export class Game {
 
     initGameWorld() {
         this.camera = new Camera(this.virtualHeight, this.virtualWidth);
-        this.player = new Player(this.virtualWidth / 2, -50);
+        this.player = new Player(this.virtualWidth / 2, -30);
         this.level = new LevelGenerator(this.virtualWidth, this.virtualHeight, this.player, this.biomesManager, this.camera, this);
 
         this.camera.reset(this.player.pos.y);
@@ -118,6 +172,14 @@ export class Game {
         
         this.score = 0;
         this.ui.score.innerText = '0';
+
+        this.runFish = 0;
+        this.updateFishUI();
+    }
+
+    addFish(amount = 1) {
+        this.runFish += amount;
+        this.updateFishUI();
     }
 
     initParticles() {
@@ -200,11 +262,34 @@ export class Game {
             layer: -1
         });
 
+        // Collect Item fish
+        particles.addPreset('sparkle_white', {
+            color: '#ffffffa8',
+            size: { min: 1, max: 2 },
+            speed: { min: 60, max: 220 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.5, max: 1.0 },
+            friction: 0.9,
+            layer: -1
+        });
+
         // Item
         particles.addPreset('sparkle_aura', {
             color: '#ffff009f',
             size: { min: 2, max: 3 },
             speed: { min: 20, max: 120 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.2, max: 0.5 },
+            friction: 0.9,
+            spread: 20,
+            layer: -1
+        });
+
+        // Item fish
+        particles.addPreset('sparkle_aura_white', {
+            color: '#ffffffa8',
+            size: { min: 1, max: 2 },
+            speed: { min: 20, max: 100 },
             angle: { min: 0, max: 360 },
             life: { min: 0.2, max: 0.5 },
             friction: 0.9,
@@ -314,9 +399,9 @@ export class Game {
 
         //hazard destroy
         particles.addPreset('hazard_destroy', {
-            color: ['#ff4d4db6', '#c00202b0', '#f43e3ed0', '#f3321dd6', '#f98383d0'], 
+            color: ['#ff4d4db6', '#c00202b0', '#f43e3ed0', '#00c8ffff', '#002244ff', '#8be9ffff'], 
             size: { min: 1, max: 1.5 },
-            speed: { min: 30, max: 60 },
+            speed: { min: 80, max: 120 },
             angle: { min: 0, max: 360 },
             life: { min: 3.0, max: 5.0 },
             gravity: 0,
@@ -442,6 +527,7 @@ export class Game {
     goToMenu() {
         this.state = GAME_STATE.MENU;
         this.initGameWorld();
+        this.updateFishUI();
 
         this.ui.menu.classList.remove('hidden');
         this.ui.pauseMenu.classList.add('hidden');
@@ -465,23 +551,73 @@ export class Game {
 
     async showLeaderboard() {
         this.ui.leaderboardList.innerHTML = "LOADING...";
+
         try {
             const scores = await getLeaderboard();
+            const user = getCurrentUser();
+
+            let html = `<div style="text-align:center; margin-bottom:10px; opacity:0.8">
+                TOP 10 BEST PLAYERS<br>
+                <span style="font-size:0.45rem">(Only top scores are shown)</span>
+            </div>`;
+
             if (scores.length === 0) {
-                this.ui.leaderboardList.innerHTML = "NO SCORES YET";
+                this.ui.leaderboardList.innerHTML = html + "NO SCORES YET";
                 return;
             }
-            let html = "";
+
             scores.forEach((entry, index) => {
-                html += `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap: 10px">
-                    <span style="min-width: 20px">${index + 1}.</span>
-                    <img src="${entry.photo || 'images/default-cat.png'}" style="width:20px; height:20px; border-radius:50%">
-                    <span style="flex-grow:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${entry.name}</span>
+                html += `
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    margin-bottom:8px;
+                    gap:6px;
+                    ${user && entry.uid === user.uid ? 'background:rgba(255,255,255,0.1); padding:4px;' : ''}
+                ">
+                    <span style="width:18px">${index + 1}.</span>
+                    <img src="${entry.photo || 'images/default-cat.png'}"
+                        style="width:18px; height:18px; border-radius:50%">
+                    <span style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis">
+                        ${entry.name}
+                    </span>
                     <span style="color:var(--primary)">${entry.score}M</span>
+                    <span style="display:flex; align-items:center; gap:4px">
+                        <img src="images/fish.png" style="width:12px; height:12px; image-rendering:pixelated">
+                        ${entry.fish ?? 0}
+                    </span>
                 </div>`;
             });
+
+            if (user && !scores.find(e => e.uid === user.uid)) {
+                html += `
+                <hr style="margin:10px 0; opacity:0.3">
+                <div style="opacity:0.8; font-size:0.55rem; text-align:center">
+                    YOUR RESULT
+                </div>
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    margin-top:6px;
+                    gap:6px;
+                    background:rgba(255,255,255,0.08);
+                    padding:4px;
+                ">
+                    <span>—</span>
+                    <img src="${user.photoURL || 'images/default-cat.png'}"
+                        style="width:18px; height:18px; border-radius:50%">
+                    <span style="flex:1">${user.displayName.split(' ')[0]}</span>
+                    <span style="color:var(--primary)">${this.highScore}M</span>
+                    <span>🐟 ${this.totalFish}</span>
+                </div>`;
+            }
+
             this.ui.leaderboardList.innerHTML = html;
+
         } catch (e) {
+            console.error(e);
             this.ui.leaderboardList.innerHTML = "FAILED TO LOAD";
         }
     }
@@ -576,6 +712,13 @@ export class Game {
                 console.warn("User not logged in - score saved only locally.");
             }
         }
+
+        this.saveFish();
+        const user = getCurrentUser();
+        if (user) {
+            await saveFish(this.totalFish);
+        }
+        this.updateFishUI();
 
         setTimeout(() => {
             this.ui.gameOver.classList.remove('hidden');

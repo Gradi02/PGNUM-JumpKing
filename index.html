@@ -215,6 +215,31 @@
     .update-banner.hidden {
         display: none;
     }
+
+    .fish {
+        color: var(--primary);
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    .fish-icon {
+        width: 32px;
+        height: 32px;
+        image-rendering: pixelated;
+    }
+
+    .fish-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    .fish-icon-ui {
+        width: 32px;
+        height: 32px;
+        image-rendering: pixelated;
+        vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -223,7 +248,13 @@
         <canvas id="game-canvas"></canvas>
 
         <div id="score-display">
-            <span id="score-val">0</span>M
+            <div>
+                <span id="score-val">0</span>M
+            </div>
+            <span class="fish-row">
+                <img src="images/fish.png" class="fish-icon-ui">
+                <span id="fish-val">0</span>
+            </span>
         </div>
 
         <button id="pause-btn" class="ui-btn pause-hidden">II</button>
@@ -246,7 +277,13 @@
                 </div>
 
                 <div class="stats-box">
-                    BEST: <span id="high-score-val">0</span>M
+                    BEST: <span id="high-score-val">0</span>M<br>
+
+                    <span class="fish-row">
+                        FISH:
+                        <img src="images/fish.png" class="fish-icon-ui">
+                        <span id="fish-menu">0</span>
+                    </span>
                 </div>
 
                 <button id="start-btn" class="ui-btn primary-btn">START GAME</button>
@@ -270,8 +307,15 @@
             <div class="menu-content">
                 <h2 class="highlight" style="font-size: 1.2rem">YOU FELL!</h2>
                 <div class="stats-box" style="margin-top:20px">
-                    SCORE: <span id="final-score">0</span>M
+                    SCORE: <span id="final-score">0</span>M<br>
+
+                    <span class="fish-row">
+                        FISH:
+                        <img src="images/fish.png" class="fish-icon-ui">
+                        <span id="fish-gameover">+0</span>
+                    </span>
                 </div>
+
                 <button id="restart-btn" class="ui-btn primary-btn">RETRY</button>
                 
                 <button id="menu-btn" class="ui-btn">MENU</button>

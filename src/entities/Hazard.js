@@ -17,15 +17,31 @@ export class Hazard {
         this.zapTimer = 0;
         this.zapPoints = [];
 
-        this.colorCore = '#460000ff';
-        this.colorOuter = '#ff1e00ff'; 
-        this.colorZap = '#ff7a5cff';   
+        // normal
+        this.colorCoreNormal = '#460000ff';
+        this.colorOuterNormal = '#ff1e00ff';
+        this.colorZapNormal = '#ff7a5cff';
+
+        // resistance active
+        this.colorCoreResist = '#002244ff';
+        this.colorOuterResist = '#00c8ffff';
+        this.colorZapResist = '#8be9ffff';
+
+        // aktualne
+        this.colorCore = this.colorCoreNormal;
+        this.colorOuter = this.colorOuterNormal;
+        this.colorZap = this.colorZapNormal; 
+
+        this.playerRezistance = false;
+        this.playerRezistanceProgress = 0;
         
         this.generateZapPoints();
     }
 
-    update(dt) {
+    update(dt, player) {
         this.timer += dt * this.pulseSpeed;
+        this.playerRezistance = player.hazardRezistance;
+        this.playerRezistanceProgress = player.hazardGraceTime / player.hazardGraceMaxTime;
 
         this.zapTimer += dt;
         if (this.zapTimer >= this.zapInterval) {
@@ -35,6 +51,40 @@ export class Hazard {
 
         if(Math.random() < 0.3) {
             particles.emitRect('hazard', this.x, this.y, this.width, this.height, 2);
+        }
+
+        if (this.playerRezistance) {
+            if (this.playerRezistanceProgress < 0.35) {
+                const blink = (Math.sin(this.timer * 8) + 1) / 2;
+
+                this.colorOuter = this.lerpColor(
+                    this.colorOuterNormal,
+                    this.colorOuterResist,
+                    blink
+                );
+
+                this.colorZap = this.lerpColor(
+                    this.colorZapNormal,
+                    this.colorZapResist,
+                    blink
+                );
+
+                this.pulseSpeed = 14;
+            }
+            else {
+                this.colorCore = this.colorCoreResist;
+                this.colorOuter = this.colorOuterResist;
+                this.colorZap = this.colorZapResist;
+
+                this.pulseSpeed = 6;
+            }
+        }
+        else {
+            this.colorCore = this.colorCoreNormal;
+            this.colorOuter = this.colorOuterNormal;
+            this.colorZap = this.colorZapNormal;
+
+            this.pulseSpeed = 8;
         }
     }
 
@@ -108,6 +158,28 @@ export class Hazard {
         particles.emitRect('hazard_destroy', this.x, this.y, this.width, this.height, 50);
     }
 
+    lerpColor(a, b, t) {
+        const ah = parseInt(a.slice(1), 16);
+        const bh = parseInt(b.slice(1), 16);
+
+        const ar = (ah >> 24) & 255;
+        const ag = (ah >> 16) & 255;
+        const ab = (ah >> 8) & 255;
+        const aa = ah & 255;
+
+        const br = (bh >> 24) & 255;
+        const bg = (bh >> 16) & 255;
+        const bb = (bh >> 8) & 255;
+        const ba = bh & 255;
+
+        const rr = ar + (br - ar) * t;
+        const rg = ag + (bg - ag) * t;
+        const rb = ab + (bb - ab) * t;
+        const ra = aa + (ba - aa) * t;
+
+        return `rgba(${rr},${rg},${rb},${ra / 255})`;
+    }
+
     draw(ctx) {
         ctx.save();
 
@@ -140,8 +212,8 @@ export class Hazard {
 
         if (this.zapPoints.length > 1) {
             ctx.strokeStyle = this.colorZap;
-            ctx.lineWidth = 1.5;
-            ctx.shadowBlur = 5; 
+            ctx.lineWidth = this.playerRezistance ? 2.2 : 1.5;
+            ctx.shadowBlur = this.playerRezistance ? 10 : 5;
             
             ctx.beginPath();
             ctx.moveTo(this.zapPoints[0].x, this.zapPoints[0].y);

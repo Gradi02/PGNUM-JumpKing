@@ -18,6 +18,7 @@ const ASSETS_TO_CACHE = [
   './src/entities/Player.js',
   './src/entities/PowerUp.js',
   './src/entities/Hazard.js',
+  './src/entities/Fish.js',
   './src/utils/screenShake.js',
   './src/utils/TimeManager.js',
   './src/utils/vJoyShot.js',

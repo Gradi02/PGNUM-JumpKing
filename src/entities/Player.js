@@ -18,6 +18,9 @@ export class Player {
         this.isGrounded = true;
         this.isDead = false;
         this.hazardRezistance = false;
+        this.hazardGraceTime = 0;
+        this.hazardGraceMaxTime = 1500;
+        this.hazardSpeedThreshold = -1500;
         this.activeInputs = true;
 
         this.activeEffects = {};
@@ -166,13 +169,42 @@ export class Player {
             this.vel.x = -this.vel.x * this.wallBounciness;
         }
 
-        if(this.hasEffect('strength') || this.hasEffect('jetpack') || 
-        (this.vel.y < -800 && this.lastPlatform.type === PLATFORM_TYPE.BOUNCY && this.doubleJumpAvailable)) {
-            this.hazardRezistance = true;
+        if (this.hasEffect('jetpack')) {
+            this.activateHazardResistance(this.hazardGraceMaxTime);
         }
-        else {
+
+        if(this.hasEffect('strength')) {
+            this.activateHazardResistance(this.hazardGraceMaxTime * 0.5);
+        }
+
+        if (this.vel.y < this.hazardSpeedThreshold) {
+            this.activateHazardResistance(this.hazardGraceMaxTime * 0.7);
+        }
+
+        if (
+            this.lastPlatform &&
+            this.lastPlatform.type === PLATFORM_TYPE.BOUNCY &&
+            this.doubleJumpAvailable &&
+            this.vel.y < -600
+        ) {
+            this.activateHazardResistance(this.hazardGraceMaxTime * 0.5);
+        }
+
+        if(this.doubleJumpAvailable) {
+            this.activateHazardResistance(this.hazardGraceMaxTime * 0.5);
+        }
+
+        if (this.hazardGraceTime > 0) {
+            this.hazardGraceTime -= dt * 1000;
+            this.hazardRezistance = true;
+        } else {
             this.hazardRezistance = false;
         }
+    }
+
+    activateHazardResistance(durationMs) {
+        this.hazardGraceTime = Math.max(this.hazardGraceTime, durationMs);
+        this.hazardRezistance = true;
     }
 
     resolvePlatformCollision(platform, dt) {

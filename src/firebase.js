@@ -89,3 +89,32 @@ export async function getUserBestScore(uid) {
         return null;
     }
 }
+
+export async function saveFish(totalFish) {
+    const user = auth.currentUser;
+    if (!user) return false;
+
+    try {
+        const userRef = doc(db, "leaderboard", user.uid);
+        await setDoc(userRef, {
+            fish: totalFish,
+            date: new Date()
+        }, { merge: true });
+
+        return true;
+    } catch (e) {
+        console.error("Firebase fish save error:", e);
+        return false;
+    }
+}
+
+export async function getUserFish(uid) {
+    try {
+        const userRef = doc(db, "leaderboard", uid);
+        const docSnap = await getDoc(userRef);
+        return docSnap.exists() ? (docSnap.data().fish ?? null) : null;
+    } catch (e) {
+        console.error("Error fetching user fish:", e);
+        return null;
+    }
+}
