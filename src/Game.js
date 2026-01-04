@@ -111,7 +111,7 @@ export class Game {
     initGameWorld() {
         this.camera = new Camera(this.virtualHeight, this.virtualWidth);
         this.player = new Player(this.virtualWidth / 2, -50);
-        this.level = new LevelGenerator(this.virtualWidth, this.virtualHeight, this.player, this.biomesManager, this.camera);
+        this.level = new LevelGenerator(this.virtualWidth, this.virtualHeight, this.player, this.biomesManager, this.camera, this);
 
         this.camera.reset(this.player.pos.y);
         this.level.update(this.camera.y, this.camera.bottom);
@@ -226,6 +226,20 @@ export class Game {
             layer: -1
         });
 
+        // shoes Effect
+        particles.addPreset('shoes', {
+            color: ['#f6ff009f', '#ffc4009f', '#ffd5009f'],
+            size: { min: 1, max: 2 },
+            speed: { min: 10, max: 40 },
+            angle: { min: 0, max: 360 },
+            life: { min: 0.5, max: 1 },
+            gravity: -200,
+            spread: 5,
+            fade: true,
+            shrink: true,
+            layer: -1
+        });
+
         // Bounce Platform
         particles.addPreset('bounce_platform', {
             color: ['#ff4de7b6', '#b902c0b0', '#c63ef4d0'], 
@@ -244,7 +258,7 @@ export class Game {
         // Ice Platform
         particles.addPreset('ice_platform', {
             color: ['#4da3ffb6', '#02b7c0b0', '#3ed9f4d0', '#1de8f3d6', '#83f9edd0'], 
-            size: { min: 0.5, max: 1 },
+            size: { min: 0.7, max: 1.5 },
             speed: { min: 10, max: 40 },
             angle: { min: 0, max: 360 },
             life: { min: 1.0, max: 2.0 },
@@ -281,6 +295,36 @@ export class Game {
             fade: true,
             layer: -2,
             spread: 5,
+        });
+
+        //hazard
+        particles.addPreset('hazard', {
+            color: ['#ff4d4db6', '#c00202b0', '#f43e3ed0', '#f3321dd6', '#f98383d0'], 
+            size: { min: 1, max: 1.5 },
+            speed: { min: 20, max: 50 },
+            angle: { min: 0, max: 360 },
+            life: { min: 1.0, max: 2.0 },
+            gravity: 0,
+            friction: 0.99,
+            fade: true,
+            shrink: true,
+            spread: 5,
+            layer: -2,
+        });
+
+        //hazard destroy
+        particles.addPreset('hazard_destroy', {
+            color: ['#ff4d4db6', '#c00202b0', '#f43e3ed0', '#f3321dd6', '#f98383d0'], 
+            size: { min: 1, max: 1.5 },
+            speed: { min: 30, max: 60 },
+            angle: { min: 0, max: 360 },
+            life: { min: 3.0, max: 5.0 },
+            gravity: 0,
+            friction: 0.99,
+            fade: true,
+            shrink: true,
+            spread: 5,
+            layer: -2,
         });
     }
 

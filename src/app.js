@@ -24,6 +24,8 @@ const gameAssets = {
     'wings': 'images/wings.png',
     'jetpack': 'images/powerup_jetpack.png',
     'strength': 'images/powerup_strength.png',
+    'shoes': 'images/powerup_shoes.png',
+    'fish': 'images/fish.png',
 };
 
 function resizeCanvas(force = false) {
@@ -94,9 +96,11 @@ async function main() {
     assets.defineTile('deco_7', 'atlas', 8, 4);
     assets.defineTile('deco_8', 'atlas', 10, 4);
 
+    assets.defineSprite('fish', 'fish', 0, 0, 32, 32);
     assets.defineSprite('wings', 'wings', 0, 0, 510, 310);
     assets.defineSprite('powerup_jetpack', 'jetpack', 0, 0, 32, 32);
     assets.defineSprite('powerup_strength', 'strength', 0, 0, 32, 32);
+    assets.defineSprite('powerup_shoes', 'shoes', 0, 0, 32, 32);
 
     resizeCanvas(true);
     

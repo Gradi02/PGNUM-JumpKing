@@ -163,7 +163,7 @@ export class Platform {
 
     special_action(player) {
         if (this.type === PLATFORM_TYPE.BOUNCY) {
-            player.vel.y = -1600; 
+            player.vel.y = -1300; 
             player.isGrounded = false;
             player.doubleJumpAvailable = true;
         } else if (this.type === PLATFORM_TYPE.BREAKABLE) {

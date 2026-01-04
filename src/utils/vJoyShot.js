@@ -4,8 +4,8 @@ export class vJoyShot {
         this.virtualWidth = null;
         this.virtualHeight = null;
         
-        this.baseDragDist = 50; 
-        this.maxDragDist = 50; 
+        this.baseDragDist = 80; 
+        this.maxDragDist = 80; 
         this.maxOutputForce = 26;
         
         this.active = false;

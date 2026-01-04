@@ -3,18 +3,21 @@ import { PLATFORM_TYPE } from '../enums.js';
 import { TimeManager } from '../utils/TimeManager.js';
 import { PowerUp } from '../entities/PowerUp.js';
 import { assets } from '../systems/AssetsManager.js';
+import { Hazard } from '../entities/Hazard.js';
 
 export class LevelGenerator {
-    constructor(canvasWidth, canvasHeight, player, biomesManager, camera) {
+    constructor(canvasWidth, canvasHeight, player, biomesManager, camera, game) {
         this.platforms = [];
         this.bgElements = [];
         this.powerups = [];
+        this.hazards = [];
 
         this.width = canvasWidth;
         this.height = canvasHeight; 
         this.player = player;
         this.biomesManager = biomesManager;
         this.camera = camera;
+        this.game = game;
 
         const gravity = 1500;
         const jumpForceMultiplier = 40;
@@ -54,7 +57,7 @@ export class LevelGenerator {
         const startX = -(this.width * 0.25);
         const endX = this.width * 1.25;
         const distance = Math.abs(this.bgLastY - targetY);
-        const density = Math.floor(distance / 40);
+        const density = Math.floor(distance / 10);
 
         for(let i = 0; i < density; i++) {
             const x = Math.random() * (endX - startX) + startX;
@@ -70,7 +73,7 @@ export class LevelGenerator {
             } 
             else {
                 element.type = 'STAR';
-                element.depth = 0.1 + Math.random() * 0.2;
+                element.depth = 0.1 + Math.random() * 0.4;
                 element.size = element.depth * 5 + 2;
                 element.r = Math.floor(Math.random() * 255);
                 element.g = Math.floor(Math.random() * 255);
@@ -104,8 +107,57 @@ export class LevelGenerator {
         let maxX = Math.min(this.width - width, prevCenter + this.maxJumpDistanceX);
 
         const x = minX + Math.random() * (maxX - minX);
-
         this.addPlatform(x, this.lastY, width);
+        const y = this.lastY;
+
+        if (this.lastY < -1000) {
+            const hazardChance = Math.min(0.3, 0.1 + (Math.abs(this.lastY) / 30000));
+            
+            if (Math.random() < hazardChance) {
+                const prevPlatform = this.platforms.length > 1 ? this.platforms[this.platforms.length - 2] : null;
+                
+                const minGapY = 140;
+                const r = Math.random();
+                
+                if (r < 0.35 && prevPlatform) {
+                    const midX = (prevPlatform.x + prevPlatform.width + x) / 2;
+                    if (Math.abs(midX - x) > 60) {
+                        const hWidth = 14;
+                        const hHeight = 100 + Math.random() * 80;
+                        
+                        const hY = Math.min(prevPlatform.y, y) - hHeight + 40; 
+                        this.hazards.push(new Hazard(midX, hY, hWidth, hHeight));
+                    }
+                }
+                else if (r < 0.7) {
+                    const hWidth = width + 10;
+                    const hHeight = 14;
+                    
+                    const offset = (Math.random() > 0.5 ? 1 : -1) * (width * 0.7);
+                    const hX = x + (width - hWidth) / 2 + offset;
+                    const hY = y - minGapY - (Math.random() * 80); 
+
+                    this.hazards.push(new Hazard(hX, hY, hWidth, hHeight));
+                }
+                else {
+                    const side = Math.random() > 0.5 ? 'LEFT' : 'RIGHT';
+                    const hWidth = 14;
+                    const hHeight = 60;
+                    
+                    let hX, hY;
+                    
+                    if (side === 'LEFT') {
+                        hX = x - 30;
+                    } else {
+                        hX = x + width + 30 - hWidth;
+                    }
+                    
+                    hY = y - 40;
+
+                    this.hazards.push(new Hazard(hX, hY, hWidth, hHeight));
+                }
+            }
+        }
     }
 
     addPlatform(x, y, w) {
@@ -113,7 +165,7 @@ export class LevelGenerator {
         const p = new Platform(x, y, w, 30, type);
         this.platforms.push(p);
 
-        if (y < -200) {
+        if (y < -200 && !this.player.hasEffect("jetpack")) {
             this.trySpawnPowerUp(x, y, w);
         }
     }
@@ -122,7 +174,7 @@ export class LevelGenerator {
         const roll = Math.random();
 
         if (roll < this.powerupCurrentChance) {
-            const types = ['JETPACK', 'STRENGTH']; 
+            const types = ['JETPACK', 'STRENGTH', 'SHOES']; 
             const randomType = types[Math.floor(Math.random() * types.length)];
             
             const pX = x + (platformWidth / 2) - 16;
@@ -150,7 +202,7 @@ export class LevelGenerator {
             this.platforms.shift();
         }
         this.powerups = this.powerups.filter(p => p.y < cleanupLine && !p.isCollected);
-
+        this.hazards = this.hazards.filter(h => h.y < cleanupLine);
 
         if (this.bgElements.length > 100 && this.bgElements[0].y > cleanupLine + 2000) {
             this.bgElements = this.bgElements.filter(el => el.y < cleanupLine);
@@ -159,6 +211,21 @@ export class LevelGenerator {
         let dt = TimeManager.deltaTime;
         this.platforms.forEach(p => p.update(dt, this.width));
         this.powerups.forEach(p => p.update(dt, this.player));
+
+        for (let i = this.hazards.length - 1; i >= 0; i--) {
+            const h = this.hazards[i];
+            h.update(dt);
+            
+            if (h.checkCollision(this.player)) {
+                if(this.player.hazardRezistance) {
+                    h.destroyParticle();
+                    this.hazards.splice(i, 1);
+                }
+                else {
+                    this.game.gameOver();
+                }
+            }
+        }
     }
 
     drawParallaxBackground(ctx) {
@@ -219,6 +286,10 @@ export class LevelGenerator {
 
         for (const p of this.powerups) {
             p.draw(ctx);
+        }
+
+        for (const h of this.hazards) {
+            h.draw(ctx);
         }
     }
 }

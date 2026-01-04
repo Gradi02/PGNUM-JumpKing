@@ -8,6 +8,8 @@ export const PowerUpTypes = {
         consumeOnUse: false,
         color: '#FFD700',
         onCollect: (player) => {
+            if(player.isDead) return;
+
             player.addEffect('jetpack', PowerUpTypes.JETPACK.duration);
             player.activeInputs = false;
             ScreenShake.shake(PowerUpTypes.JETPACK.duration/1000, 5);
@@ -23,6 +25,8 @@ export const PowerUpTypes = {
         consumeOnUse: false,
         color: '#FFD700',
         onCollect: (player) => {
+            if(player.isDead) return;
+            
             player.addEffect('strength', PowerUpTypes.STRENGTH.duration);
             player.jumpForce = 50;
         },
@@ -30,7 +34,21 @@ export const PowerUpTypes = {
             player.jumpForce = 40;
         }
     },
-    
+    SHOES: {
+        name: 'shoes',
+        duration: 9000,
+        consumeOnUse: false,
+        color: '#FFD700',
+        onCollect: (player) => {
+            if(player.isDead) return;
+            
+            player.addEffect('shoes', PowerUpTypes.SHOES.duration);
+        },
+        onExpire: (player) => {
+            if(player.lastPlatform !== null)
+                player.currentFriction = player.lastPlatform.friction;
+        }
+    },
 };
 
 

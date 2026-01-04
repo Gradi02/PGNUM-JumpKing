@@ -17,6 +17,7 @@ const ASSETS_TO_CACHE = [
   './src/entities/Platform.js',
   './src/entities/Player.js',
   './src/entities/PowerUp.js',
+  './src/entities/Hazard.js',
   './src/utils/screenShake.js',
   './src/utils/TimeManager.js',
   './src/utils/vJoyShot.js',
@@ -26,6 +27,9 @@ const ASSETS_TO_CACHE = [
   './images/default-cat.png',
   './images/wings.png',
   './images/powerup_jetpack.png',
+  './images/powerup_shoes.png',
+  './images/powerup_strength.png',
+  './images/fish.png',
 ];
 
 self.addEventListener('install', () => {

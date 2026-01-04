@@ -17,6 +17,7 @@ export class Player {
         
         this.isGrounded = true;
         this.isDead = false;
+        this.hazardRezistance = false;
         this.activeInputs = true;
 
         this.activeEffects = {};
@@ -39,8 +40,9 @@ export class Player {
         this.airResistance = 0.99;
         this.gravity = 1500;
         this.jumpForce = 40;
+        this.lastPlatform = null;
 
-        this.wallBounciness = 0.6; 
+        this.wallBounciness = 0.9; 
         this.doubleJumpAvailable = false;
         this.wingsSprite = assets.getSprite('wings');
     }
@@ -139,6 +141,13 @@ export class Player {
             particles.emit('strength', this.pos.x + this.size/2, this.pos.y + this.size/2, 20);
         }
 
+        if(this.hasEffect('shoes')) {
+            this.currentFriction = 0;
+
+            if(Math.random() < 0.2)
+                particles.emit('shoes', this.pos.x + this.size/2, this.pos.y + this.size/2, 20);
+        }
+
         if (this.isGrounded) {
             this.vel.x *= this.currentFriction;
         } else {
@@ -155,6 +164,14 @@ export class Player {
         else if (this.pos.x + this.size > canvasWidth) {
             this.pos.x = canvasWidth - this.size;
             this.vel.x = -this.vel.x * this.wallBounciness;
+        }
+
+        if(this.hasEffect('strength') || this.hasEffect('jetpack') || 
+        (this.vel.y < -800 && this.lastPlatform.type === PLATFORM_TYPE.BOUNCY && this.doubleJumpAvailable)) {
+            this.hazardRezistance = true;
+        }
+        else {
+            this.hazardRezistance = false;
         }
     }
 
@@ -180,6 +197,7 @@ export class Player {
             this.pos.y = platformTop - this.size;
             this.vel.y = 0;
             this.isGrounded = true;
+            this.lastPlatform = platform;
             
             this.currentFriction = platform.friction;
             platform.special_action(this);
