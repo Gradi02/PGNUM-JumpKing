@@ -24,7 +24,7 @@ const ASSETS_TO_CACHE = [
   './src/utils/vJoyShot.js',
   './images/jk-v3.png',
   './images/assets.png',
-  './images/cat.png',
+  './images/cat-skins.png',
   './images/default-cat.png',
   './images/wings.png',
   './images/powerup_jetpack.png',

@@ -5,6 +5,7 @@ import { GAME_STATE } from './enums.js';
 import { BiomesManager } from './systems/BiomesManager.js';
 import { particles } from './systems/ParticleSystem.js';    
 import { ScreenShake } from './utils/screenShake.js';
+import { assets } from './systems/AssetsManager.js';
 import {
   saveHighScore,
   getLeaderboard,
@@ -14,8 +15,17 @@ import {
   getUserBestScore,
   logout,
   saveFish,
-  getUserFish
+  getUserFish,
+  saveSkins,
+  getUserSkins
 } from './firebase.js';
+
+const SKINS_DATA = [
+    { id: 0, name: 'Cat', cost: 0 },
+    { id: 1, name: 'Ginger Cat', cost: 50 },
+    { id: 3, name: 'Hero Cat', cost: 100 },
+    { id: 2, name: 'Shadow', cost: 200 },
+];
 
 export class Game {
     constructor(canvas, shotController) {
@@ -37,6 +47,10 @@ export class Game {
         this.state = GAME_STATE.MENU;
         this.totalFish = parseInt(localStorage.getItem('fish_total')) || 0;
         this.runFish = 0;
+        let savedSkin = localStorage.getItem('jumpking_skin');
+        this.currentSkin = savedSkin !== null ? parseInt(savedSkin) : 0;
+        let savedUnlocked = localStorage.getItem('jumpking_unlocked_skins');
+        this.unlockedSkins = savedUnlocked ? JSON.parse(savedUnlocked) : [0];
 
         this.ui = {
             menu: document.getElementById('main-menu'),
@@ -70,6 +84,12 @@ export class Game {
             fishHud: document.getElementById('fish-hud'),   
             fishMenu: document.getElementById('fish-menu'),     
             fishGameOver: document.getElementById('fish-gameover'),
+
+            skinBtn: document.getElementById('skin-btn'),
+            skinShopUI: document.getElementById('skin-shop-ui'),
+            skinList: document.getElementById('skin-list'),
+            closeSkinBtn: document.getElementById('close-skin-btn'),
+            skinShopFish: document.getElementById('skin-shop-fish'),
         };
 
         this.ui.highScore.innerText = Math.floor(this.highScore);
@@ -119,6 +139,26 @@ export class Game {
                 }
 
                 this.updateFishUI();
+
+                const cloudData = await getUserSkins(user.uid);
+                
+                let mergedSkins = [...this.unlockedSkins];
+                
+                if (cloudData && cloudData.skins) {
+                    mergedSkins = [...new Set([...this.unlockedSkins, ...cloudData.skins])];
+                    
+                    if (cloudData.currentSkin !== null) {
+                       if (this.currentSkin === 0 && cloudData.currentSkin !== 0) {
+                           this.currentSkin = cloudData.currentSkin;
+                           localStorage.setItem('jumpking_skin', this.currentSkin);
+                           this.initGameWorld(); 
+                       }
+                    }
+                }
+
+                this.unlockedSkins = mergedSkins;
+                localStorage.setItem('jumpking_unlocked_skins', JSON.stringify(this.unlockedSkins));
+                await saveSkins(this.unlockedSkins, this.currentSkin);
             } else {
                 this.ui.loginBtn.classList.remove('hidden');
                 this.ui.userInfo.classList.add('hidden');
@@ -135,6 +175,12 @@ export class Game {
                 localStorage.removeItem('fish_total');
                 this.totalFish = 0;
                 this.updateFishUI();
+
+                this.currentSkin = 0;
+                this.unlockedSkins = [0];
+                localStorage.removeItem('jumpking_skin');
+                localStorage.removeItem('jumpking_unlocked_skins');
+                this.initGameWorld();
             }
         });
     }
@@ -162,9 +208,137 @@ export class Game {
         }
     }
 
+    openSkinShop() {
+        this.ui.skinShopUI.classList.remove('hidden');
+        this.ui.skinShopFish.innerText = this.totalFish;
+        this.renderSkins();
+    }
+
+    renderSkins() {
+        this.ui.skinList.innerHTML = '';
+
+        const skinSprites = {
+            0: assets.getSprite('cat-skin-0'),
+            1: assets.getSprite('cat-skin-1'),
+            2: assets.getSprite('cat-skin-2'),
+            3: assets.getSprite('cat-skin-3'),
+        }
+
+        SKINS_DATA.forEach(skin => {
+            const isUnlocked = this.unlockedSkins.includes(skin.id);
+            const isSelected = this.currentSkin === skin.id;
+
+            const card = document.createElement('div');
+            card.className = `skin-card ${isSelected ? 'selected' : ''}`;
+
+            const iconContainer = document.createElement('div');
+            iconContainer.style.width = '80px';
+            iconContainer.style.height = '80px';
+            iconContainer.style.margin = '0 auto 10px';
+            iconContainer.style.display = 'flex';
+            iconContainer.style.justifyContent = 'center';
+            iconContainer.style.alignItems = 'center';
+
+            const sprite = skinSprites[skin.id] || skinSprites[0];
+
+            if (sprite) {
+                const canvas = document.createElement('canvas');
+                const w = sprite.sw || 32;
+                const h = sprite.sh || 32;
+                
+                canvas.width = w;
+                canvas.height = h;
+                
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.imageRendering = 'pixelated';
+
+                const ctx = canvas.getContext('2d');
+
+                if (sprite.image) {
+                    sprite.draw(ctx, 0, 0);
+                }
+
+                iconContainer.appendChild(canvas);
+            } else {
+                iconContainer.style.background = '#ff00ff'; 
+            }
+
+            let btnHtml = '';
+            if (isSelected) {
+                btnHtml = `<button class="ui-btn primary-btn" disabled style="opacity:0.8; font-size:0.5rem; padding:5px;">SELECTED</button>`;
+            } else if (isUnlocked) {
+                btnHtml = `<button class="ui-btn secondary-btn select-skin-btn" data-id="${skin.id}" style="font-size:0.5rem; padding:5px;">SELECT</button>`;
+            } else {
+                const canAfford = this.totalFish >= skin.cost;
+                btnHtml = `<button class="ui-btn danger-btn buy-skin-btn" data-id="${skin.id}" data-cost="${skin.cost}" ${!canAfford ? 'disabled' : ''} style="font-size:0.5rem; padding:5px;">
+                    BUY ${skin.cost} <img src="images/fish.png" style="width:10px;">
+                </button>`;
+            }
+
+            card.appendChild(iconContainer);
+            
+            const nameDiv = document.createElement('div');
+            nameDiv.style.fontSize = '0.6rem';
+            nameDiv.style.marginBottom = '5px';
+            nameDiv.innerText = skin.name;
+            card.appendChild(nameDiv);
+
+            const btnContainer = document.createElement('div');
+            btnContainer.innerHTML = btnHtml;
+            while (btnContainer.firstChild) {
+                card.appendChild(btnContainer.firstChild);
+            }
+
+            this.ui.skinList.appendChild(card);
+        });
+
+        this.ui.skinList.querySelectorAll('.select-skin-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.selectSkin(parseInt(btn.dataset.id)));
+        });
+
+        this.ui.skinList.querySelectorAll('.buy-skin-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.buySkin(parseInt(btn.dataset.id), parseInt(btn.dataset.cost)));
+        });
+    }
+
+    selectSkin(skinId) {
+        this.currentSkin = skinId;
+        localStorage.setItem('jumpking_skin', this.currentSkin);
+
+        const user = getCurrentUser();
+        if (user) {
+            saveSkins(this.unlockedSkins, this.currentSkin);
+        }
+
+        this.renderSkins();
+        this.initGameWorld(); 
+    }
+
+    async buySkin(skinId, cost) {
+        if (this.totalFish >= cost) {
+            this.totalFish -= cost;
+            this.unlockedSkins.push(skinId);
+
+            localStorage.setItem('fish_total', this.totalFish);
+            localStorage.setItem('jumpking_unlocked_skins', JSON.stringify(this.unlockedSkins));
+
+            const user = getCurrentUser();
+            if (user) {
+                await saveFish(this.totalFish);
+                await saveSkins(this.unlockedSkins, this.currentSkin); 
+            }
+
+            this.updateFishUI();
+            this.ui.skinShopFish.innerText = this.totalFish;
+            
+            this.selectSkin(skinId);
+        }
+    }
+
     initGameWorld() {
         this.camera = new Camera(this.virtualHeight, this.virtualWidth);
-        this.player = new Player(this.virtualWidth / 2, -30);
+        this.player = new Player(this.virtualWidth / 2, -30, this.currentSkin);
         this.level = new LevelGenerator(this.virtualWidth, this.virtualHeight, this.player, this.biomesManager, this.camera, this);
 
         this.camera.reset(this.player.pos.y);
@@ -495,6 +669,20 @@ export class Game {
         this.ui.updateBtn?.addEventListener('click', () => {
             location.reload();
         });
+
+        if (this.ui.skinBtn) {
+            this.ui.skinBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.openSkinShop();
+            });
+        }
+
+        if (this.ui.closeSkinBtn) {
+            this.ui.closeSkinBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.ui.skinShopUI.classList.add('hidden');
+            });
+        }
     }
 
     resize() {
@@ -556,10 +744,28 @@ export class Game {
             const scores = await getLeaderboard();
             const user = getCurrentUser();
 
-            let html = `<div style="text-align:center; margin-bottom:10px; opacity:0.8">
+            let html = `
+            <div style="text-align:center; margin-bottom:10px; opacity:0.8">
                 TOP 10 BEST PLAYERS<br>
                 <span style="font-size:0.45rem">(Only top scores are shown)</span>
-            </div>`;
+            </div>
+
+            <!-- HEADER -->
+            <div style="
+                display:grid;
+                grid-template-columns: 24px 22px 1fr 50px 50px;
+                gap:6px;
+                font-size:0.5rem;
+                opacity:0.6;
+                margin-bottom:6px;
+            ">
+                <span>#</span>
+                <span></span>
+                <span>NAME</span>
+                <span style="text-align:right">SCORE</span>
+                <span style="text-align:right">FISH</span>
+            </div>
+            `;
 
             if (scores.length === 0) {
                 this.ui.leaderboardList.innerHTML = html + "NO SCORES YET";
@@ -567,23 +773,39 @@ export class Game {
             }
 
             scores.forEach((entry, index) => {
+                const isUser = user && entry.uid === user.uid;
+
                 html += `
-                <div style="
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    margin-bottom:8px;
+                <div class="${isUser ? 'me' : ''}" style="
+                    display:grid;
+                    grid-template-columns: 24px 22px 1fr 50px 50px;
                     gap:6px;
-                    ${user && entry.uid === user.uid ? 'background:rgba(255,255,255,0.1); padding:4px;' : ''}
+                    align-items:center;
+                    margin-bottom:6px;
                 ">
-                    <span style="width:18px">${index + 1}.</span>
+                    <span>${index + 1}.</span>
+
                     <img src="${entry.photo || 'images/default-cat.png'}"
                         style="width:18px; height:18px; border-radius:50%">
-                    <span style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis">
+
+                    <span style="
+                        overflow:hidden;
+                        white-space:nowrap;
+                        text-overflow:ellipsis;
+                    ">
                         ${entry.name}
                     </span>
-                    <span style="color:var(--primary)">${entry.score}M</span>
-                    <span style="display:flex; align-items:center; gap:4px">
+
+                    <span style="color:var(--primary); text-align:right">
+                        ${entry.score}M
+                    </span>
+
+                    <span style="
+                        display:flex;
+                        justify-content:flex-end;
+                        align-items:center;
+                        gap:4px
+                    ">
                         <img src="images/fish.png" style="width:12px; height:12px; image-rendering:pixelated">
                         ${entry.fish ?? 0}
                     </span>
@@ -593,24 +815,36 @@ export class Game {
             if (user && !scores.find(e => e.uid === user.uid)) {
                 html += `
                 <hr style="margin:10px 0; opacity:0.3">
+
                 <div style="opacity:0.8; font-size:0.55rem; text-align:center">
                     YOUR RESULT
                 </div>
+
                 <div style="
-                    display:flex;
-                    align-items:center;
-                    justify-content:space-between;
-                    margin-top:6px;
+                    display:grid;
+                    grid-template-columns: 24px 22px 1fr 50px 50px;
                     gap:6px;
+                    align-items:center;
+                    margin-top:6px;
                     background:rgba(255,255,255,0.08);
                     padding:4px;
                 ">
                     <span>—</span>
+
                     <img src="${user.photoURL || 'images/default-cat.png'}"
                         style="width:18px; height:18px; border-radius:50%">
-                    <span style="flex:1">${user.displayName.split(' ')[0]}</span>
-                    <span style="color:var(--primary)">${this.highScore}M</span>
-                    <span>🐟 ${this.totalFish}</span>
+
+                    <span style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis">
+                        ${user.displayName.split(' ')[0]}
+                    </span>
+
+                    <span style="color:var(--primary); text-align:right">
+                        ${this.highScore}M
+                    </span>
+
+                    <span style="text-align:right">
+                        ${this.totalFish}
+                    </span>
                 </div>`;
             }
 

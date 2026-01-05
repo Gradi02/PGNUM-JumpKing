@@ -118,3 +118,41 @@ export async function getUserFish(uid) {
         return null;
     }
 }
+
+export async function saveSkins(unlockedSkins, currentSkin) {
+    const user = auth.currentUser;
+    if (!user) return false;
+
+    try {
+        const userRef = doc(db, "leaderboard", user.uid);
+        await setDoc(userRef, {
+            skins: unlockedSkins,
+            currentSkin: currentSkin,
+            date: new Date()
+        }, { merge: true });
+
+        return true;
+    } catch (e) {
+        console.error("Firebase skins save error:", e);
+        return false;
+    }
+}
+
+export async function getUserSkins(uid) {
+    try {
+        const userRef = doc(db, "leaderboard", uid);
+        const docSnap = await getDoc(userRef);
+        
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return {
+                skins: data.skins || null,
+                currentSkin: data.currentSkin !== undefined ? data.currentSkin : null
+            };
+        }
+        return null;
+    } catch (e) {
+        console.error("Error fetching user skins:", e);
+        return null;
+    }
+}

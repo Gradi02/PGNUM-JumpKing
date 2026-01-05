@@ -240,6 +240,42 @@
         image-rendering: pixelated;
         vertical-align: middle;
     }
+
+    .me {
+        position: relative;
+    }
+
+    .me::before {
+        content: "";
+        position: absolute;
+        inset: -4px -8px;
+        background: rgba(255,255,255,0.1);
+        z-index: -1;
+    }
+
+    .skin-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        max-height: 50vh;
+        overflow-y: auto;
+        padding: 10px;
+        background: rgba(0,0,0,0.3);
+        margin-bottom: 20px;
+    }
+
+    .skin-card {
+        background: rgba(255,255,255,0.05);
+        padding: 10px;
+        border: 2px solid #444;
+        text-align: center;
+        transition: 0.2s;
+    }
+
+    .skin-card.selected {
+        border-color: var(--primary);
+        background: rgba(255, 204, 0, 0.1);
+    }
   </style>
 </head>
 <body>
@@ -253,7 +289,7 @@
             </div>
             <span class="fish-row">
                 <img src="images/fish.png" class="fish-icon-ui">
-                <span id="fish-val">0</span>
+                <span id="fish-hud">0</span>
             </span>
         </div>
 
@@ -290,7 +326,7 @@
                 
                 <div class="btn-row">
                     <button id="rank-btn" class="ui-btn secondary-btn">RANK</button>
-                    <button class="ui-btn secondary-btn" disabled>SKIN</button>
+                    <button id="skin-btn" class="ui-btn secondary-btn">SKIN</button>
                 </div>
             </div>
         </div>
@@ -329,6 +365,22 @@
                     Loading...
                 </div>
                 <button id="close-rank-btn" class="ui-btn">BACK</button>
+            </div>
+        </div>
+
+        <div id="skin-shop-ui" class="ui-overlay hidden">
+            <div class="menu-content" style="width: 90%;">
+                <h2 class="highlight">WARDROBE</h2>
+                
+                <div style="margin-bottom: 15px; font-size: 0.7rem;">
+                    YOU HAVE: <span id="skin-shop-fish" class="highlight">0</span> 
+                    <img src="images/fish.png" class="fish-icon-ui" style="width:16px; height:16px;">
+                </div>
+
+                <div id="skin-list" class="skin-grid">
+                </div>
+
+                <button id="close-skin-btn" class="ui-btn">BACK</button>
             </div>
         </div>
     </div>

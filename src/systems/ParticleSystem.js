@@ -78,7 +78,7 @@ class ParticleSystem {
     emit(name, x, y, count = 10) {
         const config = this.presets[name];
         if (!config) {
-            console.warn(`Particle System: Preset '${name}' not found!`);
+            console.log(`Particle System: Preset '${name}' not found!`);
             return;
         }
 

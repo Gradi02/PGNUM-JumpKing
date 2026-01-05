@@ -6,7 +6,7 @@ import { PowerUpTypes } from './PowerUp.js';
 import { ScreenShake } from '../utils/screenShake.js';
 
 export class Player {
-    constructor(x, y) {
+    constructor(x, y, skinId = 0) {
         this.pos = { x: x, y: y };
         this.vel = { x: 0, y: 0 };
         this.size = 32;
@@ -28,10 +28,11 @@ export class Player {
         this.facingLeft = false;
         this.animator = new Animator();
         const frameSize = 32; 
-        const idleFrames = assets.getAnimationStrip('player', 0, 0, frameSize, frameSize, 4);
-        const riseFrames = assets.getAnimationStrip('player', 0, 8 * frameSize, frameSize, frameSize, 3);
-        const fallFrames = assets.getAnimationStrip('player', 3 * frameSize, 8 * frameSize, frameSize, frameSize, 2);
-        const deadFrames = assets.getAnimationStrip('player', 0, 6 * frameSize, frameSize, frameSize, 4);
+        const skinNumber = skinId;
+        const idleFrames = assets.getAnimationStrip('player_skins', 0, (3*skinNumber + 0) * frameSize, frameSize, frameSize, 4);
+        const deadFrames = assets.getAnimationStrip('player_skins', 0, (3*skinNumber + 1) * frameSize, frameSize, frameSize, 4);
+        const riseFrames = assets.getAnimationStrip('player_skins', 0, (3*skinNumber + 2) * frameSize, frameSize, frameSize, 3);
+        const fallFrames = assets.getAnimationStrip('player_skins', 3 * frameSize, (3*skinNumber + 2) * frameSize, frameSize, frameSize, 2);
         this.animator.add('idle', idleFrames, 4, true);
         this.animator.add('rise', riseFrames, 10, false);
         this.animator.add('fall', fallFrames, 10, false);
@@ -262,19 +263,29 @@ export class Player {
 
         const centerX = this.pos.x + this.size / 2;
         const centerY = this.pos.y + this.size / 2;
-        const glowRadius = this.size;
-        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+
+        const softGlowRadius = this.size * 1.4;
+        const softGlow = ctx.createRadialGradient(
+            centerX,
+            centerY,
+            this.size * 0.2,
+            centerX,
+            centerY,
+            softGlowRadius
+        );
+
+        softGlow.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+        softGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = softGlow;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, softGlowRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
 
         if(this.doubleJumpAvailable) {
-            gradient.addColorStop(0, 'rgba(255, 0, 255, 0.3)');
-            gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
-            ctx.save();
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
             this.wingsSprite.draw(
                 ctx,
                 this.pos.x - this.size,

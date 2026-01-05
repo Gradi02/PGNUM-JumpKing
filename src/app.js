@@ -20,7 +20,7 @@ let game;
 
 const gameAssets = {
     'atlas': 'images/assets.png',
-    'player': 'images/cat.png',
+    'player_skins': 'images/cat-skins.png',
     'wings': 'images/wings.png',
     'jetpack': 'images/powerup_jetpack.png',
     'strength': 'images/powerup_strength.png',
@@ -101,6 +101,11 @@ async function main() {
     assets.defineSprite('powerup_jetpack', 'jetpack', 0, 0, 32, 32);
     assets.defineSprite('powerup_strength', 'strength', 0, 0, 32, 32);
     assets.defineSprite('powerup_shoes', 'shoes', 0, 0, 32, 32);
+
+    assets.defineTile('cat-skin-0', 'player_skins', 0, 0, 32, 32);
+    assets.defineTile('cat-skin-1', 'player_skins', 0, 3, 32, 32);
+    assets.defineTile('cat-skin-2', 'player_skins', 0, 6, 32, 32);
+    assets.defineTile('cat-skin-3', 'player_skins', 0, 9, 32, 32);
 
     resizeCanvas(true);
     
