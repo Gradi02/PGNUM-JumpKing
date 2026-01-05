@@ -33,7 +33,7 @@ const ASSETS_TO_CACHE = [
   './images/fish.png',
 ];
 
-self.addEventListener('install', () => {
+self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))

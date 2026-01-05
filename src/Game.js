@@ -100,6 +100,7 @@ export class Game {
 
         onAuthUpdate(async (user) => {
             if (user) {
+                // hs
                 this.ui.loginBtn.classList.add('hidden');
                 this.ui.userInfo.classList.remove('hidden');
                 this.ui.userName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'User';
@@ -122,24 +123,23 @@ export class Game {
                 
                 this.ui.highScore.innerText = Math.floor(this.highScore);
 
+                //fish
                 const onlineFish = await getUserFish(user.uid);
                 const localFish = parseInt(localStorage.getItem('fish_total')) || 0;
 
                 if (onlineFish !== null) {
-                    if (localFish > onlineFish) {
+                    this.totalFish = onlineFish;
+                    localStorage.setItem('fish_total', this.totalFish);
+                } else {
+                    if (localFish > 0) {
                         await saveFish(localFish);
                         this.totalFish = localFish;
-                    } else {
-                        this.totalFish = onlineFish;
-                        localStorage.setItem('fish_total', this.totalFish);
                     }
-                } else if (localFish > 0) {
-                    await saveFish(localFish);
-                    this.totalFish = localFish;
                 }
 
                 this.updateFishUI();
 
+                // skins
                 const cloudData = await getUserSkins(user.uid);
                 
                 let mergedSkins = [...this.unlockedSkins];
